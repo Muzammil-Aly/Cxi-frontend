@@ -11,6 +11,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setTouchupsOpen } from "@/redux/slices/tabSlice";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface Props {
   orderId?: string;
@@ -63,6 +64,9 @@ const LocationItemLot = ({ sku, source }: Props) => {
 
   // Apply column customization
   const orderItemsCol = useLocationItemLot(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: orderItemsCol, fileName: "Location_Item_Lot.xlsx" });
+  };
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -177,6 +181,7 @@ const LocationItemLot = ({ sku, source }: Props) => {
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

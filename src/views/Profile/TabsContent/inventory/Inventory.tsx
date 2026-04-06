@@ -22,6 +22,7 @@ import TouchupsPens from "../../TouchupsPens";
 import { inventory_columns } from "@/constants/Grid-Table/ColDefs";
 import useInventoryColumn from "@/hooks/Ag-Grid/useInventoryColumn";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 import Loader from "@/components/Common/Loader";
 import { useGetInventoryQuery } from "@/redux/services/profileApi";
 import { getRowStyle } from "@/utils/gridStyles";
@@ -347,6 +348,9 @@ const Inventory = () => {
 
   // Apply column customization
   const tiCol = useInventoryColumn(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: tiCol, fileName: "Inventory.xlsx" });
+  };
 
   const handleSelectOrderItem = (item: any) => {
     setSelectedTouchupItemNo(item);
@@ -474,6 +478,7 @@ const Inventory = () => {
               onToggleColumnVisibility={toggleColumnVisibility}
               onUpdateColumnsVisibility={updateColumnsVisibility}
               isVisibilityLoading={isSaving}
+              onExport={handleExport}
             />
           )}
         </Paper>

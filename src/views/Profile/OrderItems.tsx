@@ -19,6 +19,7 @@ import {
   resetAllTabs,
 } from "@/redux/slices/tabSlice";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 interface Props {
   orderId: string;
   setSelectedOrderItem?: React.Dispatch<React.SetStateAction<any | null>>;
@@ -135,6 +136,10 @@ const OrderItems = ({
 
   const [orderItemSecOpen, setOrderItemSecOpen] = useState<boolean>(false);
 
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: orderItemsCol, fileName: "Order_Items.xlsx" });
+  };
+
   const onRowClicked = (params: any) => {
     const event = params?.event;
     if ((event?.target as HTMLElement).closest(".MuiIconButton-root")) {
@@ -236,6 +241,7 @@ const OrderItems = ({
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

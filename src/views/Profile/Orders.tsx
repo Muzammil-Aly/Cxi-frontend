@@ -1248,7 +1248,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                 </Box>
               </Popover>
 
-              {userId === "kav1" && (
+              {/* {userId === "kav1" && (
                 <>
                   <Box display="flex" justifyContent="flex-end" mb={2}>
                     <Button
@@ -1277,7 +1277,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                     </DialogActions>
                   </Dialog>
                 </>
-              )}
+              )} */}
               {/* Reset all button (optional placement) */}
               {/* <Box sx={{ marginLeft: "auto" }}>
                 <Button

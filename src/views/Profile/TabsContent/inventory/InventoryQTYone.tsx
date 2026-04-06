@@ -11,6 +11,7 @@ import Loader from "@/components/Common/Loader";
 import test from "node:test";
 import { useGetUserPreferencesQuery } from "@/redux/services/profileApi";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface InventoryQTYone {
   location_code?: string;
@@ -79,6 +80,13 @@ const InventoryQTYone: React.FC<InventoryQTYone> = ({
   });
   // Apply column customization
   const tiCol = useQTYone(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({
+      data: rowData,
+      columns: tiCol,
+      fileName: "Lot Level Detail.xlsx",
+    });
+  };
 
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(10);
@@ -102,7 +110,13 @@ const InventoryQTYone: React.FC<InventoryQTYone> = ({
   // Trigger manually when props change or drawer opens
   useEffect(() => {
     if (location_code && item_no) {
-      getQTYone({ location_code, item_no, page, page_size: pageSize, source: "Inventory" });
+      getQTYone({
+        location_code,
+        item_no,
+        page,
+        page_size: pageSize,
+        source: "Inventory",
+      });
     }
   }, [location_code, item_no, page, pageSize, getQTYone]);
 
@@ -194,6 +208,7 @@ const InventoryQTYone: React.FC<InventoryQTYone> = ({
             onToggleColumnVisibility={toggleColumnVisibility}
             onUpdateColumnsVisibility={updateColumnsVisibility}
             isVisibilityLoading={isSaving}
+            onExport={handleExport}
           />
         )}
       </Paper>

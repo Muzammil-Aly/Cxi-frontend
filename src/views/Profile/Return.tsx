@@ -12,6 +12,7 @@ import {
 } from "@/redux/services/profileApi";
 import { getRowStyle } from "@/utils/gridStyles";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface Props {
   orderId?: string;
@@ -102,6 +103,9 @@ const Return = ({ customer_id }: Props) => {
     defaultColumns: Returns,
   });
   const columns = useReturnColumn(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns, fileName: "Returns.xlsx" });
+  };
 
   const [highlightedId, setHighlightedId] = useState<string | number | null>(
     null
@@ -177,6 +181,7 @@ const Return = ({ customer_id }: Props) => {
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

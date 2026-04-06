@@ -18,6 +18,7 @@ import Loader from "@/components/Common/Loader";
 import { useGetItemTrackingCommentsQuery } from "@/redux/services/profileApi";
 import { getRowStyle } from "@/utils/gridStyles";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 import { Cancel as CancelIcon } from "@mui/icons-material";
 import debounce from "lodash.debounce";
 import { useSelector } from "react-redux";
@@ -65,6 +66,9 @@ const ItemTrackingComments = ({
   });
 
   const orderItemsCol = useItemTrackingComments(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: orderItemsCol, fileName: "Item_Tracking_Comments.xlsx" });
+  };
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -389,6 +393,7 @@ const ItemTrackingComments = ({
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

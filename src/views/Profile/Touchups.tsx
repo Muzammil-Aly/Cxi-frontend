@@ -5,6 +5,7 @@ import AgGridTable from "@/components/ag-grid";
 import { touchups_columns } from "@/constants/Grid-Table/ColDefs";
 import useTouchupsColumn from "@/hooks/Ag-Grid/useTouchupsColumn";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 import {
   Box,
   Typography,
@@ -86,6 +87,9 @@ const Touchups = ({
   });
 
   const touchupsCol = useTouchupsColumn(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: touchupsCol, fileName: "Touchups.xlsx" });
+  };
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [selectedTouchupDetail, setSelectedTouchupDetail] =
     useState<Touchup | null>(null);
@@ -459,6 +463,7 @@ const Touchups = ({
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

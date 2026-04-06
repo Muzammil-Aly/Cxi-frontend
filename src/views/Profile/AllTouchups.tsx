@@ -18,6 +18,7 @@ import Loader from "@/components/Common/Loader";
 import { useGetTouchupsQuery } from "@/redux/services/profileApi";
 import { getRowStyle } from "@/utils/gridStyles";
 import debounce from "lodash.debounce";
+import { exportToExcel } from "@/utils/exportToExcel";
 import type { DebouncedFunc } from "lodash";
 
 type FilterKey = "lot_no" | "order_id" | "customer_id" | "sku" | "color_slug";
@@ -85,6 +86,10 @@ const AllTouchups: React.FC = () => {
         }))
       : [];
   }, [data]);
+
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: touchupsCol, fileName: "All_Touchups.xlsx" });
+  };
 
   const onRowClicked = (params: any) => {
     const clicked = params.data;
@@ -289,6 +294,7 @@ const AllTouchups: React.FC = () => {
           totalPages={data?.total_pages || 1}
           onPageChange={(newPage: number) => setPage(newPage)}
           paginationPageSize={pageSizeInput}
+          onExport={handleExport}
         />
       )}
     </Box>

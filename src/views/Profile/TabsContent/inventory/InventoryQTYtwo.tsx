@@ -21,6 +21,7 @@ import { Cancel as CancelIcon } from "@mui/icons-material";
 import debounce from "lodash.debounce";
 import { useGetUserPreferencesQuery } from "@/redux/services/profileApi";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface InventoryQTYtwo {
   location_code?: string;
@@ -91,6 +92,13 @@ const InventoryQTYtwo: React.FC<InventoryQTYtwo> = ({
   });
   // Apply column customization
   const tiCol = useQTYtwo(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({
+      data: rowData,
+      columns: tiCol,
+      fileName: "Bin Level Detail.xlsx",
+    });
+  };
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
@@ -121,7 +129,7 @@ const InventoryQTYtwo: React.FC<InventoryQTYtwo> = ({
         setIsTyping((prev) => ({ ...prev, [key]: false }));
         setPage(1);
       }, 800),
-    []
+    [],
   );
 
   const queryParams = {
@@ -136,7 +144,7 @@ const InventoryQTYtwo: React.FC<InventoryQTYtwo> = ({
 
   const { data, isLoading, isFetching } = useGetQTYtwoInventoryTableQuery(
     queryParams,
-    { skip: !selectedQtyoneItem }
+    { skip: !selectedQtyoneItem },
   );
 
   const rowData = useMemo(() => {
@@ -275,6 +283,7 @@ const InventoryQTYtwo: React.FC<InventoryQTYtwo> = ({
             onToggleColumnVisibility={toggleColumnVisibility}
             onUpdateColumnsVisibility={updateColumnsVisibility}
             isVisibilityLoading={isSaving}
+            onExport={handleExport}
           />
         )}
       </Paper>

@@ -20,6 +20,7 @@ import useTouchupsPens from "@/hooks/Ag-Grid/useTouchupPens";
 import { getRowStyle } from "@/utils/gridStyles";
 import { useGetTouchupPensQuery } from "@/redux/services/profileApi";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 
@@ -84,6 +85,9 @@ const TouchupsPens: React.FC<Props> = ({
 
   // Apply column customization
   const touchupsPenCol = useTouchupsPens(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: touchupsPenCol, fileName: "Touchup_Pens.xlsx" });
+  };
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [selectedTouchupDetail, setSelectedTouchupDetail] =
     useState<Touchup | null>(null);
@@ -412,6 +416,7 @@ const TouchupsPens: React.FC<Props> = ({
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

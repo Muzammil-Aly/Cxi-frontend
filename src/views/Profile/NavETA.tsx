@@ -9,6 +9,7 @@ import Loader from "@/components/Common/Loader";
 import { useGetNavETAQuery } from "@/redux/services/profileApi";
 import { getRowStyle } from "@/utils/gridStyles";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface Props {
   orderId?: string;
@@ -40,6 +41,9 @@ const NavETA = ({ sku, source }: Props) => {
 
   // Apply column customization
   const orderItemsCol = useNavETA(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: orderItemsCol, fileName: "NavETA.xlsx" });
+  };
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [highlightedId, setHighlightedId] = useState<string | number | null>(
@@ -146,6 +150,7 @@ const NavETA = ({ sku, source }: Props) => {
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
     </Box>

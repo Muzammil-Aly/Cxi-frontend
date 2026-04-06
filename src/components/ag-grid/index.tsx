@@ -3,6 +3,7 @@ import { AgGridReact } from "ag-grid-react";
 import "./index.scss";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import DownloadIcon from "@mui/icons-material/Download";
 import ColumnVisibilitySettings from "./ColumnVisibilitySettings";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -59,6 +60,9 @@ const AgGridTable: React.FC<any> = ({
   onUpdateColumnsVisibility,
   isVisibilityLoading = false,
 
+  // Export prop
+  onExport,
+
   ...gridProps
 }) => {
   // Create internal ref if external one not provided
@@ -80,7 +84,11 @@ const AgGridTable: React.FC<any> = ({
         const savedColumnState = localStorage.getItem(storageKey);
         console.log("Loading column state for key:", storageKey);
         console.log("Saved state:", savedColumnState);
-        if (savedColumnState && savedColumnState !== "undefined" && savedColumnState !== "null") {
+        if (
+          savedColumnState &&
+          savedColumnState !== "undefined" &&
+          savedColumnState !== "null"
+        ) {
           try {
             const columnState = JSON.parse(savedColumnState);
             console.log("Applying column state:", columnState);
@@ -102,7 +110,7 @@ const AgGridTable: React.FC<any> = ({
         gridProps.onGridReady(params);
       }
     },
-    [storageKey, gridProps]
+    [storageKey, gridProps],
   );
 
   // Save column order to localStorage when columns are moved
@@ -121,7 +129,7 @@ const AgGridTable: React.FC<any> = ({
         gridProps.onColumnMoved(event);
       }
     },
-    [storageKey, gridProps]
+    [storageKey, gridProps],
   );
 
   // Reset columns to default order
@@ -129,7 +137,7 @@ const AgGridTable: React.FC<any> = ({
     if (storageKey && gridRef?.current?.api) {
       localStorage.removeItem(storageKey);
       gridRef.current.api.resetColumnState();
-      console.log("✅ Columns reset to default order");
+      console.log(" Columns reset to default order");
 
       // Call custom onResetColumns handler if provided (to save default order to API)
       if (gridProps.onResetColumns) {
@@ -145,8 +153,14 @@ const AgGridTable: React.FC<any> = ({
 
   return (
     <>
-      <Box sx={{ width: width || "100%", overflowX: "hidden", position: "relative" }}>
-        {storageKey && (
+      <Box
+        sx={{
+          width: width || "100%",
+          overflowX: "hidden",
+          position: "relative",
+        }}
+      >
+        {(storageKey || onExport) && (
           <Box
             sx={{
               position: "absolute",
@@ -158,30 +172,54 @@ const AgGridTable: React.FC<any> = ({
             }}
           >
             {/* Column Visibility Settings */}
-            <ColumnVisibilitySettings
-              columns={allColumnsWithVisibility || []}
-              onToggleColumn={onToggleColumnVisibility || (() => {})}
-              onUpdateMultiple={onUpdateColumnsVisibility || (() => {})}
-              isLoading={isVisibilityLoading}
-            />
+            {storageKey && (
+              <ColumnVisibilitySettings
+                columns={allColumnsWithVisibility || []}
+                onToggleColumn={onToggleColumnVisibility || (() => {})}
+                onUpdateMultiple={onUpdateColumnsVisibility || (() => {})}
+                isLoading={isVisibilityLoading}
+              />
+            )}
 
             {/* Reset Columns Button */}
-            <Tooltip title="Reset columns to default" placement="left">
-              <IconButton
-                onClick={handleResetColumns}
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.9)",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                  "&:hover": {
-                    backgroundColor: "#fff",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
-                  },
-                }}
-              >
-                <RestartAltIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            {storageKey && (
+              <Tooltip title="Reset columns to default" placement="left">
+                <IconButton
+                  onClick={handleResetColumns}
+                  size="small"
+                  sx={{
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    "&:hover": {
+                      backgroundColor: "#fff",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+                    },
+                  }}
+                >
+                  <RestartAltIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {/* Export Button */}
+            {onExport && (
+              <Tooltip title="Export to Excel" placement="left">
+                <IconButton
+                  onClick={onExport}
+                  size="small"
+                  sx={{
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    "&:hover": {
+                      backgroundColor: "#fff",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+                    },
+                  }}
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
         )}
         <div

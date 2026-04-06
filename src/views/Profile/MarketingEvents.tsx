@@ -15,6 +15,7 @@ import {
 import { useGetCustomerEventsQuery } from "@/redux/services/profileApi";
 import CloseIcon from "@mui/icons-material/Close";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 import Loader from "@/components/Common/Loader";
 import CustomSearchField from "@/components/Common/CustomSearch";
@@ -56,9 +57,17 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
 
   // Apply column customization
   const eventCol = useMarketingEvents(filteredColumns);
+  const excelCol = useMarketingEvents(marketing_events);
+  const handleExport = () => {
+    exportToExcel({
+      data: rowData,
+      columns: eventCol,
+      fileName: "Marketing_Events.xlsx",
+    });
+  };
 
   const [highlightedId, setHighlightedId] = useState<string | number | null>(
-    null
+    null,
   );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -140,7 +149,7 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
         setPage(1);
         setIsTyping(false);
       }, 5000),
-    []
+    [],
   );
 
   const debouncedCustomerName = useMemo(
@@ -150,7 +159,7 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
         setPage(1);
         setIsCustomerNameTyping(false);
       }, 5000),
-    []
+    [],
   );
   const debouncedEventId = useMemo(
     () =>
@@ -159,7 +168,7 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
         setPage(1);
         setIsEventIdTyping(false);
       }, 5000),
-    []
+    [],
   );
   const debouncedCustomerId = useMemo(
     () =>
@@ -168,7 +177,7 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
         setPage(1);
         setIsCustomerIdTyping(false);
       }, 5000),
-    []
+    [],
   );
   const debouncedCampainName = useMemo(
     () =>
@@ -177,7 +186,7 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
         setPage(1);
         setIsCustomerNameTyping(false);
       }, 5000),
-    []
+    [],
   );
   return (
     <Box display="flex">
@@ -322,6 +331,7 @@ const MarketingEvents: React.FC<MarketingEventsProps> = ({ customerId }) => {
               onToggleColumnVisibility={toggleColumnVisibility}
               onUpdateColumnsVisibility={updateColumnsVisibility}
               isVisibilityLoading={isSaving}
+              onExport={handleExport}
             />
           </Box>
         )}

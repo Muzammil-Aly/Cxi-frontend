@@ -12,6 +12,7 @@ import { getRowStyle } from "@/utils/gridStyles";
 import Loader from "@/components/Common/Loader";
 // import { useGetUserPreferencesQuery } from "@/redux/services/profileApi";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface InventorySOTableProps {
   location_code?: string;
@@ -80,6 +81,9 @@ const InventorySOTable: React.FC<InventorySOTableProps> = ({
     parentTabName: "Inventory",
   });
   const tiCol = useSalesOrders(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: tiCol, fileName: "Inventory_SO.xlsx" });
+  };
 
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(10);
@@ -216,6 +220,7 @@ const InventorySOTable: React.FC<InventorySOTableProps> = ({
             onToggleColumnVisibility={toggleColumnVisibility}
             onUpdateColumnsVisibility={updateColumnsVisibility}
             isVisibilityLoading={isSaving}
+            onExport={handleExport}
           />
         )}
       </Paper>

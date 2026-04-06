@@ -5,7 +5,6 @@ import { users } from "@/constants/Grid-Table/ColDefs";
 import useUsersColumn from "@/hooks/Ag-Grid/useUsersColumn";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
 import ClearIcon from "@mui/icons-material/Clear";
-
 import {
   Box,
   FormControl,
@@ -43,7 +42,7 @@ import {
   useGetPhoneQuery,
 } from "@/redux/services/profileApi";
 import DropdownSearchInput from "@/components/Common/CustomSearch/DropdownSearchInput";
-
+import { exportToExcel } from "@/utils/exportToExcel";
 interface SegmentOption {
   id: string;
   name: string;
@@ -226,7 +225,13 @@ const DetailedInfo = () => {
     // If same option clicked again → clear selection
     setSourceFilter((prev) => (prev === option ? "" : option));
   };
-
+  const handleExport = () => {
+    exportToExcel({
+      data: rowData,
+      columns: userCol, // directly use your AG Grid columns
+      fileName: "Customer_Profiles.xlsx",
+    });
+  };
   return (
     <Box flex={1} pl={8} width="100%">
       <Box display="flex" flexDirection="column" width="100%" mb={2}>
@@ -273,17 +278,18 @@ const DetailedInfo = () => {
               }}
             />
           </Box>
-
-          <Box minWidth={120} mt={2}>
-            <CustomSelect
-              label="Page Size"
-              value={pageSize}
-              options={[10, 50, 100]}
-              onChange={(val) => {
-                setPageSize(val);
-                setPage(1);
-              }}
-            />
+          <Box display="flex" alignItems="center" mt={2}>
+            <Box minWidth={95}>
+              <CustomSelect
+                label="Page Size"
+                value={pageSize}
+                options={[10, 50, 100]}
+                onChange={(val) => {
+                  setPageSize(val);
+                  setPage(1);
+                }}
+              />
+            </Box>
           </Box>
         </Box>
 
@@ -347,36 +353,84 @@ const DetailedInfo = () => {
         </Box>
 
         {/* Source Buttons */}
-        <Box display="flex" flexWrap="wrap" gap={1}>
-          {sourceOptions.map((option) => (
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          gap={2}
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+            {sourceOptions.map((option) => (
+              <Button
+                key={option}
+                onClick={() => toggleSouceoptions(option)}
+                sx={{
+                  minWidth: 90,
+                  height: 36,
+                  fontSize: 13,
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  fontWeight: 800,
+                  border: "1px solid transparent",
+                  color: sourceFilter === option ? "#fff" : "#1C1C1E",
+                  background: sourceFilter === option ? "#0E1B6B" : "#EDEDF0",
+                  transition: "all 0.25s ease",
+                  boxShadow:
+                    sourceFilter === option
+                      ? "0px 4px 10px rgba(0, 79, 167, 0.3)"
+                      : "0px 2px 6px rgba(0,0,0,0.05)",
+                  "&:hover": {
+                    color: sourceFilter === option ? "#fff" : "#1C1C1E",
+                    background: sourceFilter === option ? "#131C55" : "#E5E7EB",
+                  },
+                }}
+              >
+                {option}
+              </Button>
+            ))}
+          </Box>
+          {/* <Box>
             <Button
-              key={option}
-              onClick={() => toggleSouceoptions(option)}
+              onClick={handleExport}
+              variant="outlined"
+              startIcon={<DownloadIcon />}
               sx={{
-                minWidth: 90,
                 height: 36,
-                fontSize: 13,
                 textTransform: "none",
                 borderRadius: "8px",
-                fontWeight: 800,
-                border: "1px solid transparent",
-                color: sourceFilter === option ? "#fff" : "#1C1C1E",
-                background: sourceFilter === option ? "#0E1B6B" : "#EDEDF0",
-                transition: "all 0.25s ease",
-                boxShadow:
-                  sourceFilter === option
-                    ? "0px 4px 10px rgba(0, 79, 167, 0.3)"
-                    : "0px 2px 6px rgba(0,0,0,0.05)",
-                "&:hover": {
-                  color: sourceFilter === option ? "#fff" : "#1C1C1E",
-                  background: sourceFilter === option ? "#131C55" : "#E5E7EB",
-                },
+                fontWeight: 600,
               }}
             >
-              {option}
+              Export
             </Button>
-          ))}
+          </Box> */}
         </Box>
+        {/* <Button
+          onClick={handleExport}
+          startIcon={<DownloadIcon />}
+          sx={{
+            height: 36,
+            textTransform: "none",
+            borderRadius: "8px",
+            fontWeight: 700,
+            fontSize: 13,
+            px: 2,
+            color: "#fff",
+            background: "linear-gradient(135deg, #0E1B6B, #004FA7)",
+            boxShadow: "0px 4px 10px rgba(0, 79, 167, 0.3)",
+            transition: "all 0.25s ease",
+            "&:hover": {
+              background: "linear-gradient(135deg, #131C55, #003B82)",
+              boxShadow: "0px 6px 14px rgba(0, 79, 167, 0.4)",
+            },
+            "&:active": {
+              transform: "scale(0.97)",
+            },
+          }}
+        >
+          Download Excel
+        </Button> */}
       </Box>
 
       {isLoading || isFetching ? (
@@ -402,6 +456,7 @@ const DetailedInfo = () => {
           onToggleColumnVisibility={toggleColumnVisibility}
           onUpdateColumnsVisibility={updateColumnsVisibility}
           isVisibilityLoading={isSaving}
+          onExport={handleExport}
         />
       )}
       <UserDetailsModal

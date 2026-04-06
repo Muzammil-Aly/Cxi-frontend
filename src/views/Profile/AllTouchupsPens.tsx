@@ -8,6 +8,7 @@ import { touchups_pens } from "@/constants/Grid-Table/ColDefs";
 import useTouchupsPens from "@/hooks/Ag-Grid/useTouchupPens";
 import { getRowStyle } from "@/utils/gridStyles";
 import { useGetTouchupPensQuery } from "@/redux/services/profileApi";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface Touchup {
   ItemNum: string;
@@ -39,6 +40,10 @@ const AllTouchupsPens: React.FC = () => {
   );
 
   const rowData = useMemo(() => data?.results ?? [], [data]);
+
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: touchupsPenCol, fileName: "All_Touchup_Pens.xlsx" });
+  };
 
   const onRowClicked = (params: any) => {
     const clickedItem = params.data as Touchup;
@@ -77,6 +82,7 @@ const AllTouchupsPens: React.FC = () => {
           totalPages={data?.total_pages || 1}
           onPageChange={(newPage: any) => setPage(newPage)}
           paginationPageSize={pageSize}
+          onExport={handleExport}
         />
       )}
     </Box>

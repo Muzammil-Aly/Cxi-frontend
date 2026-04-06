@@ -6,6 +6,7 @@ import { Box, Paper } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
 import AgGridTable from "@/components/ag-grid";
+import { exportToExcel } from "@/utils/exportToExcel";
 import CustomerSegmentCard from "../CustomerSegmentCard";
 import OrderItems from "../OrderItems";
 import SupportTicketComments from "../SupportTicketComments";
@@ -74,6 +75,11 @@ const ResponsiveDashboard = ({
   >(null);
 
   const hasId = selectedCustId || selectedOrderId || selectedTicket;
+
+  const handleExport = () => {
+    const fileName = currentMenu ? `${currentMenu}.xlsx` : "Export.xlsx";
+    exportToExcel({ data: rowData, columns: userCol, fileName });
+  };
 
   // 🔹 Set active tab when selection changes
   useEffect(() => {
@@ -295,6 +301,7 @@ const ResponsiveDashboard = ({
               onToggleColumnVisibility={onToggleColumnVisibility}
               onUpdateColumnsVisibility={onUpdateColumnsVisibility}
               isVisibilityLoading={isVisibilityLoading}
+              onExport={handleExport}
             />
           </Box>
         </Paper>

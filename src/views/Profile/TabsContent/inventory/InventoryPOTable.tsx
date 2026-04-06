@@ -12,6 +12,7 @@ import Loader from "@/components/Common/Loader";
 import { Paper, Box, FormControl, TextField, MenuItem } from "@mui/material";
 import { useGetUserPreferencesQuery } from "@/redux/services/profileApi";
 import { useColumnPreferences } from "@/hooks/useColumnPreferences";
+import { exportToExcel } from "@/utils/exportToExcel";
 
 interface InventoryPOTableProps {
   location_code?: string;
@@ -75,6 +76,9 @@ const InventoryPOTable: React.FC<InventoryPOTableProps> = ({
   });
   // Apply column customization
   const tiCol = usePurchaseOrders(filteredColumns);
+  const handleExport = () => {
+    exportToExcel({ data: rowData, columns: tiCol, fileName: "Inventory_PO.xlsx" });
+  };
 
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(10);
@@ -211,6 +215,7 @@ const InventoryPOTable: React.FC<InventoryPOTableProps> = ({
             onToggleColumnVisibility={toggleColumnVisibility}
             onUpdateColumnsVisibility={updateColumnsVisibility}
             isVisibilityLoading={isSaving}
+            onExport={handleExport}
           />
         )}
       </Paper>
