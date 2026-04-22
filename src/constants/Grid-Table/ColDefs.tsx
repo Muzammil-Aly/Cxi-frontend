@@ -252,6 +252,49 @@ export const orderItems = (
     headerName: "Estimated Delivery Date",
     cellRenderer: CopyCellRenderer,
   },
+  //   Whse_Shipment_Qty,
+  // Whse_Shipment_No,
+  // WH_Status,
+  // WH_Shipment_Pick_Status,
+  // WH_Shipment_Date,
+  // WH_Created_Date,
+  // WH_Created_Time
+  {
+    field: "Whse_Shipment_Qty",
+    headerName: "Warehouse Shipment Qty",
+    cellRenderer: CopyCellRenderer,
+  },
+  {
+    field: "WH_Shipment_Date",
+    headerName: "Warehouse Shipment Date",
+    cellRenderer: CopyCellRenderer,
+  },
+  {
+    field: "WH_Created_Date",
+    headerName: "Warehouse Created Date",
+    cellRenderer: CopyCellRenderer,
+  },
+  {
+    field: "WH_Created_Time",
+    headerName: "Warehouse Created Time",
+    cellRenderer: CopyCellRenderer,
+  },
+  {
+    field: "WH_Status",
+    headerName: "Warehouse Status",
+    cellRenderer: CopyCellRenderer,
+  },
+  {
+    field: "WH_Shipment_Pick_Status",
+    headerName: "Warehouse Shipment Pick Status",
+    cellRenderer: CopyCellRenderer,
+  },
+  {
+    field: "Whse_Shipment_No",
+    headerName: "Warehouse Shipment No",
+    cellRenderer: CopyCellRenderer,
+  },
+
   // {
   //   field: "item_type",
   //   headerName: "Item Type",

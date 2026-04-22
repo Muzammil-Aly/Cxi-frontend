@@ -130,6 +130,17 @@ const OrderItems = ({
           estimated_delivery_date: item.estimated_delivery_date
             ? item.estimated_delivery_date.split("T")[0]
             : "N/A",
+          Whse_Shipment_Qty: item.Whse_Shipment_Qty,
+          Whse_Shipment_No: item.Whse_Shipment_No,
+          WH_Status: item.WH_Status,
+          WH_Shipment_Pick_Status: item.WH_Shipment_Pick_Status,
+          WH_Shipment_Date: item.WH_Shipment_Date
+            ? item.WH_Shipment_Date.split("T")[0]
+            : "N/A",
+          WH_Created_Date: item.WH_Created_Date
+            ? item.WH_Created_Date.split("T")[0]
+            : "N/A",
+          WH_Created_Time: item.WH_Created_Time,
         }))
       : [];
   }, [data]);
@@ -137,7 +148,11 @@ const OrderItems = ({
   const [orderItemSecOpen, setOrderItemSecOpen] = useState<boolean>(false);
 
   const handleExport = () => {
-    exportToExcel({ data: rowData, columns: orderItemsCol, fileName: "Order_Items.xlsx" });
+    exportToExcel({
+      data: rowData,
+      columns: orderItemsCol,
+      fileName: "Order_Items.xlsx",
+    });
   };
 
   const onRowClicked = (params: any) => {

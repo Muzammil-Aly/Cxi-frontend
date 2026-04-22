@@ -208,6 +208,57 @@ const useOrderItems = (columns: Column[]) => {
             flex: 1,
             minWidth: 230,
           };
+        case "Whse_Shipment_Qty":
+          return {
+            ...col,
+            headerName: "Warehouse Shipment Qty",
+            flex: 1,
+            minWidth: 220,
+          };
+        case "Whse_Shipment_No":
+          return {
+            ...col,
+            headerName: "Warehouse Shipment No",
+            flex: 1,
+            minWidth: 220,
+          };
+        case "WH_Status":
+          return {
+            ...col,
+            headerName: "Warehouse Status",
+            flex: 1,
+            minWidth: 200,
+          };
+        case "WH_Shipment_Pick_Status":
+          return {
+            ...col,
+            headerName: "Warehouse Shipment Pick Status",
+            flex: 1,
+
+            minWidth: 300,
+          };
+        case "WH_Shipment_Date":
+          return {
+            ...col,
+            headerName: "Warehouse Shipment Date",
+            flex: 1,
+            minWidth: 300,
+          };
+        case "WH_Created_Date":
+          return {
+            ...col,
+            headerName: "Warehouse Created Date",
+            flex: 1,
+            minWidth: 300,
+          };
+        case "WH_Created_Time":
+          return {
+            ...col,
+            headerName: "Warehouse Created Time",
+            flex: 1,
+            minWidth: 300,
+          };
+
         default:
           return { ...col, flex: 1, minWidth: 120 };
       }
