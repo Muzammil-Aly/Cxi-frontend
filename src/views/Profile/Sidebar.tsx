@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import HistoryIcon from "@mui/icons-material/History";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { useRouter } from "next/navigation";
 import { useLogoutMutation } from "@/redux/services/authApi";
 import UserActivityLog from "./UserActivityLog";
@@ -27,12 +28,16 @@ interface SidebarProps {
   menuItems: SidebarItem[];
   activeMenu: string;
   onLogout: () => void;
+  genieOpen?: boolean;
+  onGenieToggle?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   menuItems,
   activeMenu,
   onLogout,
+  genieOpen = false,
+  onGenieToggle,
 }) => {
   const router = useRouter();
   const [userName, setUserName] = useState<string | null>(null);
@@ -222,6 +227,34 @@ const Sidebar: React.FC<SidebarProps> = ({
           {item.label}
         </Box>
       ))}
+
+      {/* Genie AI Toggle */}
+      {/* {(userId === "kav1" ||
+        userId === "mdb1" ||
+        userId === "mdb20" ||
+        userId === "mdb15" ||
+        userId === "mdb14") && ( */}
+      <Box
+        onClick={onGenieToggle}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          p: 1.5,
+          cursor: "pointer",
+          fontSize: 14,
+          fontWeight: genieOpen ? "bold" : "normal",
+          color: genieOpen ? "#A78BFA" : "#8E92AD",
+          borderRadius: "10px",
+          bgcolor: genieOpen ? "rgba(167,139,250,0.12)" : "transparent",
+          "&:hover": { color: "#A78BFA" },
+          transition: "all 0.2s",
+        }}
+      >
+        <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+        Genie AI
+      </Box>
+      {/* )} */}
 
       {/* User Box */}
       <Box

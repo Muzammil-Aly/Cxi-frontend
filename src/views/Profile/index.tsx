@@ -8,6 +8,7 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import EventIcon from "@mui/icons-material/Event";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import Sidebar from "./Sidebar";
+import GenieChatbot from "@/components/GenieChatbot";
 import Orders from "./Orders";
 import SupportTickets from "./SupportTickets";
 import MarketingEvents from "./MarketingEvents";
@@ -28,6 +29,7 @@ import Cookies from "js-cookie";
 const Profile = () => {
   const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("Customer Profiles");
+  const [genieOpen, setGenieOpen] = useState(false);
 
   const handleLogout = () => {
     // Clear cookies for server-side middleware (Vercel)
@@ -97,15 +99,25 @@ const Profile = () => {
           menuItems={menuItems}
           activeMenu={activeMenu}
           onLogout={handleLogout}
+          genieOpen={genieOpen}
+          onGenieToggle={() => setGenieOpen((v) => !v)}
         />
       </Box>
+
+      {/* Genie Chatbot panel */}
+      <GenieChatbot
+        open={genieOpen}
+        onClose={() => setGenieOpen(false)}
+        sidebarWidth={200}
+      />
 
       {/* Main Content Area */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          pl: 3,
+          pl: genieOpen ? "370px" : 3,
+          transition: "padding-left 0.2s ease",
           overflowX: "hidden",
           display: "flex",
           flexDirection: "column",

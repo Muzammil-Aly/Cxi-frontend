@@ -8,6 +8,7 @@ import EventIcon from "@mui/icons-material/Event";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import Sidebar from "./Sidebar";
+import GenieChatbot from "@/components/GenieChatbot";
 import { useRouter } from "next/navigation";
 import {
   Typography,
@@ -29,6 +30,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
   activeMenu,
 }) => {
   const router = useRouter();
+  const [genieOpen, setGenieOpen] = useState(false);
 
   const handleLogout = () => {
     // Clear all authentication data (tokens, cookies, localStorage)
@@ -114,15 +116,25 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
           menuItems={filteredMenuItems}
           activeMenu={activeMenu}
           onLogout={handleLogout}
+          genieOpen={genieOpen}
+          onGenieToggle={() => setGenieOpen((v) => !v)}
         />
       </Box>
+
+      {/* Genie Chatbot panel */}
+      <GenieChatbot
+        open={genieOpen}
+        onClose={() => setGenieOpen(false)}
+        sidebarWidth={200}
+      />
 
       {/* Main Content Area */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          pl: 3,
+          pl: genieOpen ? "370px" : 3,
+          transition: "padding-left 0.2s ease",
           overflowX: "hidden",
           display: "flex",
           flexDirection: "column",

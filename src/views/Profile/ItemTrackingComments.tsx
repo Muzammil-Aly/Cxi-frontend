@@ -67,7 +67,11 @@ const ItemTrackingComments = ({
 
   const orderItemsCol = useItemTrackingComments(filteredColumns);
   const handleExport = () => {
-    exportToExcel({ data: rowData, columns: orderItemsCol, fileName: "Item_Tracking_Comments.xlsx" });
+    exportToExcel({
+      data: rowData,
+      columns: orderItemsCol,
+      fileName: "Item_Tracking_Comments.xlsx",
+    });
   };
 
   const [page, setPage] = useState(1);
