@@ -141,6 +141,7 @@ const OrderItems = ({
             ? item.WH_Created_Date.split("T")[0]
             : "N/A",
           WH_Created_Time: item.WH_Created_Time,
+          child_item: item.child_item,
         }))
       : [];
   }, [data]);

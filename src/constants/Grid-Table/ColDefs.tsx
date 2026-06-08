@@ -294,6 +294,11 @@ export const orderItems = (
     headerName: "Warehouse Shipment No",
     cellRenderer: CopyCellRenderer,
   },
+  {
+    field: "child_item",
+    headerName: "Child Item",
+    cellRenderer: CopyCellRenderer,
+  },
 
   // {
   //   field: "item_type",

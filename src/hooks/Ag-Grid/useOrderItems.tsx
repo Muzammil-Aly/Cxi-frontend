@@ -258,7 +258,13 @@ const useOrderItems = (columns: Column[]) => {
             flex: 1,
             minWidth: 300,
           };
-
+        case "child_item":
+          return {
+            ...col,
+            headerName: "Child Item",
+            flex: 1,
+            minWidth: 150,
+          };
         default:
           return { ...col, flex: 1, minWidth: 120 };
       }
