@@ -132,6 +132,22 @@ const useInventory = (columns: Column[]) => {
             minWidth: 160,
             cellStyle: { fontSize: "16px" },
           };
+        case "description_2":
+          return {
+            ...col,
+            headerName: "Description 2",
+            flex: 1,
+            minWidth: 250,
+            cellStyle: { fontSize: "16px" },
+          };
+        case "brand":
+          return {
+            ...col,
+            headerName: "Brand",
+            flex: 1,
+            minWidth: 150,
+            cellStyle: { fontSize: "16px" },
+          };
         default:
           return col;
       }

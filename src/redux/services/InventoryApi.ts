@@ -182,6 +182,9 @@ export const inventoryApi = createApi({
         item_no?: string;
         location_code?: any;
         description?: string;
+        description_2?: string;
+        brand?: string;
+        property_code?: string;
         eta?: string;
         qty?: number;
         qty_available?: number;
@@ -198,6 +201,9 @@ export const inventoryApi = createApi({
         item_no,
         location_code,
         description,
+        description_2,
+        brand,
+        property_code,
         eta,
         qty,
         qty_available,
@@ -222,6 +228,9 @@ export const inventoryApi = createApi({
           params.set("location_code", location_code);
         }
         if (description) params.set("description", description);
+        if (description_2) params.set("description_2", description_2);
+        if (brand) params.set("brand", brand);
+        if (property_code) params.set("property_code", property_code);
         if (eta) params.set("eta", eta);
         if (qty !== undefined) params.set("qty", qty.toString());
         if (qty_available !== undefined)

@@ -64,6 +64,22 @@ const Inventory = () => {
   >(undefined);
   const [descriptionTyping, setDescriptionTyping] = useState(false);
 
+  const [description2Input, setDescription2Input] = useState("");
+  const [description2Filter, setDescription2Filter] = useState<
+    string | undefined
+  >(undefined);
+  const [description2Typing, setDescription2Typing] = useState(false);
+
+  const [brandInput, setBrandInput] = useState("");
+  const [brandFilter, setBrandFilter] = useState<string | undefined>(undefined);
+  const [brandTyping, setBrandTyping] = useState(false);
+
+  const [propertyCodeInput, setPropertyCodeInput] = useState("");
+  const [propertyCodeFilter, setPropertyCodeFilter] = useState<
+    string | undefined
+  >(undefined);
+  const [propertyCodeTyping, setPropertyCodeTyping] = useState(false);
+
   const [selectedInventoryItem, setSelectedInventoryItem] = useState<
     any | null
   >(null);
@@ -98,6 +114,9 @@ const Inventory = () => {
     location_code: locationCodeFilter?.length ? locationCodeFilter : undefined,
     item_no: ItemNoFilter || undefined,
     description: descriptionFilter,
+    description_2: description2Filter,
+    brand: brandFilter,
+    property_code: propertyCodeFilter,
     life_cycle_status_code: lifeCycleFilter || undefined,
   });
   console.log("selectedQtyoneItem", selectedQtyoneItem);
@@ -123,6 +142,8 @@ const Inventory = () => {
           qty_on_inspecting_lot: item.qty_on_inspecting_lot,
           expected_receipt_qty: item.expected_receipt_qty,
           current_vendor: item.current_vendor,
+          description_2: item.description_2,
+          brand: item.brand,
         }))
       : [];
   }, [data]);
@@ -172,6 +193,37 @@ const Inventory = () => {
       }, 500),
     [],
   );
+
+  const debouncedDescription2 = useMemo(
+    () =>
+      debounce((value: string) => {
+        setDescription2Filter(value);
+        setPage(1);
+        setDescription2Typing(false);
+      }, 500),
+    [],
+  );
+
+  const debouncedBrand = useMemo(
+    () =>
+      debounce((value: string) => {
+        setBrandFilter(value);
+        setPage(1);
+        setBrandTyping(false);
+      }, 500),
+    [],
+  );
+
+  const debouncedPropertyCode = useMemo(
+    () =>
+      debounce((value: string) => {
+        setPropertyCodeFilter(value);
+        setPage(1);
+        setPropertyCodeTyping(false);
+      }, 500),
+    [],
+  );
+
   const debouncedLifeCycleStatus = useMemo(
     () =>
       debounce((value: string) => {
@@ -419,6 +471,42 @@ const Inventory = () => {
             setFilter={setDescriptionFilter}
             debouncedFunction={debouncedDescription}
             loading={descriptionTyping}
+            width={150}
+          />
+          <SearchInput
+            label="Description 2"
+            value={description2Input}
+            setValue={(val) => {
+              setDescription2Input(val);
+              setDescription2Typing(true);
+            }}
+            setFilter={setDescription2Filter}
+            debouncedFunction={debouncedDescription2}
+            loading={description2Typing}
+            width={150}
+          />
+          <SearchInput
+            label="Brand"
+            value={brandInput}
+            setValue={(val) => {
+              setBrandInput(val);
+              setBrandTyping(true);
+            }}
+            setFilter={setBrandFilter}
+            debouncedFunction={debouncedBrand}
+            loading={brandTyping}
+            width={150}
+          />
+          <SearchInput
+            label="Property Code"
+            value={propertyCodeInput}
+            setValue={(val) => {
+              setPropertyCodeInput(val);
+              setPropertyCodeTyping(true);
+            }}
+            setFilter={setPropertyCodeFilter}
+            debouncedFunction={debouncedPropertyCode}
+            loading={propertyCodeTyping}
             width={150}
           />
         </Box>

@@ -1447,6 +1447,20 @@ export const inventory_columns = (
     flex: 1,
     minWidth: 220,
   },
+  {
+    field: "description_2",
+    headerName: "Description 2",
+    cellRenderer: CopyCellRenderer,
+    flex: 1,
+    minWidth: 250,
+  },
+  {
+    field: "brand",
+    headerName: "Brand",
+    cellRenderer: CopyCellRenderer,
+    flex: 1,
+    minWidth: 150,
+  },
 ];
 
 export const sales_orders = [
