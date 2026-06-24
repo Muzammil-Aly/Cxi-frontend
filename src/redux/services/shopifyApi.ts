@@ -57,15 +57,16 @@ export interface ShopifyOrder {
 export const shopifyApi = createApi({
   reducerPath: "shopifyApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["DraftOrder"],
+  tagTypes: ["DraftOrder", "Product"],
   endpoints: (builder) => ({
     getProducts: builder.query<ShopifyProduct[], ShopifyStore>({
       query: (store = "store1") => ({
-        url: `/shopify/products?store=${store}`,
+        url: `/shopify/products?store=${store}&limit=250`,
         method: "GET",
       }),
       transformResponse: (response: { data: ShopifyProduct[] }) =>
         response.data,
+      providesTags: (result, error, store) => [{ type: "Product", id: store }],
     }),
     createOrder: builder.mutation<
       any,
@@ -75,7 +76,14 @@ export const shopifyApi = createApi({
         financialStatus?: string;
         note?: string;
         tags?: string[];
-        lineItems: { variantId: string; quantity: number }[];
+        lineItems: {
+          variantId?: string;
+          quantity: number;
+          title?: string;
+          price?: string;
+          sku?: string;
+          properties?: { name: string; value: string }[];
+        }[];
         shippingAddress: {
           firstName: string;
           lastName: string;
@@ -91,6 +99,7 @@ export const shopifyApi = createApi({
         inventoryBehaviour?: "BYPASS" | "DECREMENT" | "RELEASE";
         sendReceipt?: boolean;
         sendFulfillmentReceipt?: boolean;
+        vendor?: string;
       }
     >({
       query: ({
@@ -104,6 +113,7 @@ export const shopifyApi = createApi({
         inventoryBehaviour = "BYPASS",
         sendReceipt = false,
         sendFulfillmentReceipt = false,
+        vendor,
       }) => ({
         url: `/shopify/create-order?store=${store}`,
         method: "POST",
@@ -119,6 +129,7 @@ export const shopifyApi = createApi({
           inventoryBehaviour,
           sendReceipt,
           sendFulfillmentReceipt,
+          vendor,
         },
       }),
     }),
@@ -129,7 +140,15 @@ export const shopifyApi = createApi({
         email: string;
         note?: string;
         tags?: string[];
-        lineItems: { variantId: string; quantity: number }[];
+        washWholeUnit?: boolean;
+        lineItems: {
+          variantId?: string;
+          quantity: number;
+          title?: string;
+          price?: string;
+          sku?: string;
+          properties?: { name: string; value: string }[];
+        }[];
         shippingAddress: {
           firstName: string;
           lastName: string;
@@ -142,6 +161,7 @@ export const shopifyApi = createApi({
           zip: string;
           phone?: string;
         };
+        vendor?: string;
       }
     >({
       query: ({
@@ -149,19 +169,23 @@ export const shopifyApi = createApi({
         email,
         note,
         tags = [],
+        washWholeUnit = false,
         lineItems,
         shippingAddress,
+        vendor,
       }) => ({
-        url: `/shopify/create-draft-order?store=${store}`,
+        url: `/shopify/create-smart-draft-order?store=${store}`,
         method: "POST",
         body: {
           draftOrder: {
             email,
             note,
             tags,
+            washWholeUnit,
             lineItems,
             shippingAddress,
           },
+          vendor,
         },
       }),
     }),
@@ -186,6 +210,7 @@ export const shopifyApi = createApi({
         }>;
         customAttributes?: { key: string; value: string }[];
         tags?: string[];
+        vendor?: string;
       }
     >({
       query: ({
@@ -195,10 +220,11 @@ export const shopifyApi = createApi({
         shippingAddress,
         customAttributes,
         tags,
+        vendor,
       }) => ({
         url: `/shopify/order/${orderId}?store=${store}`,
         method: "PUT",
-        body: { email, shippingAddress, customAttributes, tags },
+        body: { email, shippingAddress, customAttributes, tags, vendor },
       }),
     }),
 
@@ -227,7 +253,13 @@ export const shopifyApi = createApi({
           title?: string;
           quantity: number;
           originalUnitPrice?: string;
+          reasonCode?: string;
+          returnReasonCode?: string;
+          sku?: string;
+          lotNo?: string;
+          itemNo?: string;
         }>;
+        vendor?: string;
       }
     >({
       query: ({
@@ -238,10 +270,18 @@ export const shopifyApi = createApi({
         customAttributes,
         tags,
         lineItems,
+        vendor,
       }) => ({
         url: `/shopify/draft-order/${draftOrderId}?store=${store}`,
         method: "PUT",
-        body: { email, shippingAddress, customAttributes, tags, lineItems },
+        body: {
+          email,
+          shippingAddress,
+          customAttributes,
+          tags,
+          lineItems,
+          vendor,
+        },
       }),
       invalidatesTags: (result, error, { draftOrderId }) => [
         { type: "DraftOrder", id: draftOrderId },
@@ -258,7 +298,14 @@ export const shopifyApi = createApi({
           price: string | null;
           sku: string | null;
         }>;
-        customItems: Array<{ title: string; quantity: number }>;
+        customItems: Array<{
+          title: string;
+          quantity: number;
+          price: string | null;
+          customAttributes: Array<{ key: string; value: string }>;
+        }>;
+        customAttributes: Array<{ key: string; value: string }>;
+        status: string | null;
       },
       { draftOrderId: string; store?: ShopifyStore }
     >({
@@ -271,7 +318,6 @@ export const shopifyApi = createApi({
       ],
       transformResponse: (response: { data: any }) => {
         const edges = response?.data?.lineItems?.edges ?? [];
-        // Use a Map to deduplicate variant-based items (same variantId → sum quantities)
         const variantMap = new Map<
           string,
           {
@@ -282,7 +328,12 @@ export const shopifyApi = createApi({
             sku: string | null;
           }
         >();
-        const customItems: Array<{ title: string; quantity: number }> = [];
+        const customItems: Array<{
+          title: string;
+          quantity: number;
+          price: string | null;
+          customAttributes: Array<{ key: string; value: string }>;
+        }> = [];
         for (const { node } of edges) {
           const variantId = node.variant?.id ?? null;
           if (variantId) {
@@ -301,10 +352,19 @@ export const shopifyApi = createApi({
             customItems.push({
               title: node.title ?? "",
               quantity: node.quantity ?? 0,
+              price: node.originalUnitPriceSet?.shopMoney?.amount ?? null,
+              customAttributes: (node.customAttributes ?? []).filter(
+                (a: any) => a.key && a.value,
+              ),
             });
           }
         }
-        return { lineItems: Array.from(variantMap.values()), customItems };
+        return {
+          lineItems: Array.from(variantMap.values()),
+          customItems,
+          customAttributes: response?.data?.customAttributes ?? [],
+          status: response?.data?.status ?? null,
+        };
       },
     }),
 
@@ -315,6 +375,7 @@ export const shopifyApi = createApi({
           title: string;
           quantity: number;
           sku: string | null;
+          customAttributes: Array<{ key: string; value: string }>;
         }>;
         shippingAddress: ShopifyOrderAddress | null;
         email: string | null;
@@ -337,6 +398,9 @@ export const shopifyApi = createApi({
             title: node.title ?? "",
             quantity: node.currentQuantity ?? node.quantity ?? 0,
             sku: node.sku?.sku ?? null,
+            customAttributes: (node.customAttributes ?? []).filter(
+              (a: any) => a.key && a.value,
+            ),
           }));
         return {
           lineItems,
@@ -367,6 +431,7 @@ export const shopifyApi = createApi({
         }>;
         notifyCustomer?: boolean;
         staffNote?: string;
+        vendor?: string;
       }
     >({
       query: ({
@@ -375,10 +440,62 @@ export const shopifyApi = createApi({
         operations,
         notifyCustomer,
         staffNote,
+        vendor,
       }) => ({
         url: `/shopify/order/${orderId}/edit?store=${store}`,
         method: "POST",
-        body: { operations, notifyCustomer, staffNote },
+        body: { operations, notifyCustomer, staffNote, vendor },
+      }),
+    }),
+
+    cancelOrder: builder.mutation<
+      any,
+      {
+        orderId: string;
+        store?: ShopifyStore;
+        reason?: string;
+        refund?: boolean;
+        restock?: boolean;
+      }
+    >({
+      query: ({
+        orderId,
+        store = "store1",
+        reason = "CUSTOMER",
+        refund = false,
+        restock = true,
+      }) => ({
+        url: `/shopify/order/${orderId}/cancel?store=${store}`,
+        method: "POST",
+        body: { reason, refund, restock },
+      }),
+    }),
+
+    getOrderEditEligibility: builder.query<
+      {
+        canEdit: boolean;
+        reason: string | null;
+        remainingMinutes: number | null;
+        order: {
+          id: string;
+          name: string;
+          createdAt: string;
+          cancelledAt: string | null;
+          closedAt: string | null;
+          displayFulfillmentStatus: string;
+        } | null;
+      },
+      { orderId: string; store?: ShopifyStore }
+    >({
+      query: ({ orderId, store = "store1" }) => ({
+        url: `/shopify/order/${orderId}/edit-eligibility?store=${store}`,
+        method: "GET",
+      }),
+      transformResponse: (response: any) => ({
+        canEdit: response.canEdit,
+        reason: response.reason ?? null,
+        remainingMinutes: response.remainingMinutes ?? null,
+        order: response.order ?? null,
       }),
     }),
 
@@ -412,6 +529,85 @@ export const shopifyApi = createApi({
       },
       providesTags: [{ type: "DraftOrder", id: "LIST" }],
     }),
+
+    getShopifyReturnReasons: builder.query<
+      { data: { Code: string; Description: string }[]; total_records: number },
+      void
+    >({
+      query: () => ({
+        url: `/shopify_return_reasons?page_size=100`,
+        method: "GET",
+      }),
+    }),
+
+    getShopifyReturnReasonsCode: builder.query<
+      { data: { Code: string; Description: string }[]; total_records: number },
+      void
+    >({
+      query: () => ({
+        url: `/shopify_return_reasons_code?page_size=100`,
+        method: "GET",
+      }),
+    }),
+
+    createProduct: builder.mutation<
+      any,
+      {
+        store?: ShopifyStore;
+        title: string;
+        price: number;
+        sku?: string;
+        product_type?: string;
+        vendor?: string;
+      }
+    >({
+      query: ({
+        store = "store1",
+        title,
+        price,
+        sku,
+        product_type,
+        vendor,
+      }) => ({
+        url: `/shopify/create-product?store=${store}`,
+        method: "POST",
+        body: { title, price, sku, product_type, vendor },
+      }),
+      invalidatesTags: (result, error, { store = "store1" }) => [
+        { type: "Product", id: store },
+      ],
+    }),
+
+    getShopifyLineItems: builder.query<
+      {
+        data: {
+          order_id: string;
+          customer_email: string;
+          phone_no: string;
+          lot_no: string | null;
+          item_no: string;
+          quantity: number;
+          zip_code: string;
+          address: string;
+          city: string;
+          state_code: string;
+          country_code: string;
+          company: string;
+          unit_price: number | null;
+          description?: string | null;
+          description_2?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+        }[];
+        total_records: number;
+      },
+      { order_id: string }
+    >({
+      query: ({ order_id }) => ({
+        url: `/shopify_line_items?order_id=${encodeURIComponent(order_id)}&page_size=50`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -424,6 +620,12 @@ export const {
   useGetOrderLineItemsQuery,
   useGetDraftOrderLineItemsQuery,
   useEditOrderMutation,
+  useCancelOrderMutation,
+  useGetOrderEditEligibilityQuery,
   useGetShopifyOrdersQuery,
   useGetShopifyDraftOrdersQuery,
+  useGetShopifyReturnReasonsQuery,
+  useGetShopifyReturnReasonsCodeQuery,
+  useGetShopifyLineItemsQuery,
+  useCreateProductMutation,
 } = shopifyApi;

@@ -21,7 +21,8 @@ interface SidebarItem {
   key: string;
   label: string;
   icon: React.ReactNode;
-  path: string;
+  path?: string;
+  onClick?: () => void;
 }
 
 interface SidebarProps {
@@ -205,10 +206,46 @@ const Sidebar: React.FC<SidebarProps> = ({
       </Box>
 
       {/* Menu Items */}
-      {menuItems.map((item) => (
+      {menuItems.map((item) => {
+        const isActive = activeMenu === item.key;
+        return (
+          <Box
+            key={item.key}
+            onClick={() => {
+              item.onClick
+                ? item.onClick()
+                : item.path && router.push(item.path);
+            }}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              p: 1.5,
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: isActive ? "bold" : "normal",
+              color: isActive ? "#FFFFFF" : "#8E92AD",
+              borderRadius: "10px",
+              bgcolor: "transparent",
+              justifyContent: "flex-start",
+              transition: "all 0.2s",
+              "&:hover": { color: "#F3F4F6" },
+            }}
+          >
+            {item.icon}
+            {item.label}
+          </Box>
+        );
+      })}
+
+      {/* Genie AI Toggle */}
+      {(userId === "kav1" ||
+        userId === "mdb1" ||
+        userId === "mdb20" ||
+        userId === "mdb15" ||
+        userId === "mdb14") && (
         <Box
-          key={item.key}
-          onClick={() => router.push(item.path)}
+          onClick={onGenieToggle}
           sx={{
             display: "flex",
             alignItems: "center",
@@ -216,45 +253,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             p: 1.5,
             cursor: "pointer",
             fontSize: 14,
-            fontWeight: activeMenu === item.key ? "bold" : "normal",
-            color: activeMenu === item.key ? "#FFFFFF" : "#8E92AD",
+            fontWeight: genieOpen ? "bold" : "normal",
+            color: genieOpen ? "#A78BFA" : "#8E92AD",
             borderRadius: "10px",
-            justifyContent: "flex-start",
-            "&:hover": { color: "#F3F4F6" }, // only color changes
+            bgcolor: genieOpen ? "rgba(167,139,250,0.12)" : "transparent",
+            "&:hover": { color: "#A78BFA" },
+            transition: "all 0.2s",
           }}
         >
-          {item.icon}
-          {item.label}
+          <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+          Genie AI
         </Box>
-      ))}
-
-      {/* Genie AI Toggle */}
-      {/* {(userId === "kav1" ||
-        userId === "mdb1" ||
-        userId === "mdb20" ||
-        userId === "mdb15" ||
-        userId === "mdb14") && ( */}
-      <Box
-        onClick={onGenieToggle}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-          p: 1.5,
-          cursor: "pointer",
-          fontSize: 14,
-          fontWeight: genieOpen ? "bold" : "normal",
-          color: genieOpen ? "#A78BFA" : "#8E92AD",
-          borderRadius: "10px",
-          bgcolor: genieOpen ? "rgba(167,139,250,0.12)" : "transparent",
-          "&:hover": { color: "#A78BFA" },
-          transition: "all 0.2s",
-        }}
-      >
-        <AutoAwesomeIcon sx={{ fontSize: 20 }} />
-        Genie AI
-      </Box>
-      {/* )} */}
+      )}
 
       {/* User Box */}
       <Box

@@ -8,7 +8,7 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import EventIcon from "@mui/icons-material/Event";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import Sidebar from "./Sidebar";
-import GenieChatbot from "@/components/GenieChatbot";
+// import GenieChatbot from "@/components/GenieChatbot"; // Genie AI disabled for now
 import Orders from "./Orders";
 import SupportTickets from "./SupportTickets";
 import MarketingEvents from "./MarketingEvents";
@@ -29,7 +29,7 @@ import Cookies from "js-cookie";
 const Profile = () => {
   const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("Customer Profiles");
-  const [genieOpen, setGenieOpen] = useState(false);
+  // const [genieOpen, setGenieOpen] = useState(false); // Genie AI disabled for now
 
   const handleLogout = () => {
     // Clear cookies for server-side middleware (Vercel)
@@ -99,24 +99,25 @@ const Profile = () => {
           menuItems={menuItems}
           activeMenu={activeMenu}
           onLogout={handleLogout}
-          genieOpen={genieOpen}
-          onGenieToggle={() => setGenieOpen((v) => !v)}
+          // Genie AI disabled for now
+          // genieOpen={genieOpen}
+          // onGenieToggle={() => setGenieOpen((v) => !v)}
         />
       </Box>
 
-      {/* Genie Chatbot panel */}
-      <GenieChatbot
+      {/* Genie Chatbot panel — disabled for now */}
+      {/* <GenieChatbot
         open={genieOpen}
         onClose={() => setGenieOpen(false)}
         sidebarWidth={200}
-      />
+      /> */}
 
       {/* Main Content Area */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          pl: genieOpen ? "370px" : 3,
+          pl: 3, // Genie AI disabled for now
           transition: "padding-left 0.2s ease",
           overflowX: "hidden",
           display: "flex",

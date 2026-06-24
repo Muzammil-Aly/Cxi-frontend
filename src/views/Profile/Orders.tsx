@@ -37,7 +37,7 @@ interface OrdersProps {
   customerId?: string;
 }
 import CustomSearchField from "@/components/Common/CustomSearch";
-import { Phone, Send, Add, Close } from "@mui/icons-material";
+import { Phone, Send, Add, Close, Search } from "@mui/icons-material";
 
 import { getRowStyle } from "@/utils/gridStyles";
 import SearchInput from "@/components/Common/CustomSearch/SearchInput";
@@ -67,6 +67,9 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import CircularLoader from "@/components/Common/CustomSearch/CircularLoader";
 import AddIcon from "@mui/icons-material/Add";
 import ShopifyOrderForm from "./ShopifyOrderForm";
+import { exportToExcel } from "@/utils/exportToExcel";
+import DownloadIcon from "@mui/icons-material/Download";
+
 const Orders = ({ customerId }: { customerId?: string }) => {
   // Use column preferences hook
   const {
@@ -197,6 +200,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     null,
   );
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [filterSearchText, setFilterSearchText] = useState("");
+  const [pendingFilters, setPendingFilters] = useState<string[]>([]);
 
   // available filters (excluding the default 3)
   const filterOptions = [
@@ -862,6 +867,138 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     handleToggleFilter(key);
   };
 
+  const handleApplyFilters = async () => {
+    const toRemove = activeFilters.filter((k) => !pendingFilters.includes(k));
+
+    toRemove.forEach((key) => {
+      switch (key) {
+        case "shippingAddress":
+          setShippingAddressInput("");
+          setShippingAddressFilter(undefined);
+          setIsShippingAddressTyping(false);
+          break;
+        case "customerNo":
+          setcustomerNoInput("");
+          setcustomerNoFilter(undefined);
+          setIsCustomerNoTyping(false);
+          break;
+        case "customerID":
+          setCustomerIdInput("");
+          setCustomerIdFilter(undefined);
+          setIsCustomerIDTyping(false);
+          break;
+        case "tracking":
+          setTrackingInput("");
+          setTrackingFilter(undefined);
+          setIsTrackingTyping(false);
+          break;
+        case "profitName":
+          setProfitNameInput("");
+          setProfitNameFilter(undefined);
+          setIsProfitNameTyping(false);
+          break;
+        case "retailerName":
+          setRetailerNameInput("");
+          setRetailerNameFilter(undefined);
+          setIsRetailerNameTyping(false);
+          break;
+        case "orderStatus":
+          setOrderStatusInput("");
+          setOrderStatusFilter(undefined);
+          setIsOrderStatusTyping(false);
+          break;
+        case "fulfillmentStatus":
+          setFullfillmentInput("");
+          setFullfillmentFilter(undefined);
+          setIsFullfillmentTyping(false);
+          break;
+        case "psiNumber":
+          setPsiNumberInput("");
+          setPsiNumberFilter(undefined);
+          setIsPsiNumbertyping(false);
+          break;
+        case "phone_no":
+          setPhoneNumberInput("");
+          setPhoneNumberFilter(undefined);
+          setIsPhoneNumberTyping(false);
+          break;
+        case "your_reference":
+          setYourReferenceInput("");
+          setYourReferenceFilter(undefined);
+          setIsYourReferenceTyping(false);
+          break;
+        default:
+          break;
+      }
+    });
+
+    setActiveFilters(pendingFilters);
+    setAnchorElFilters(null);
+
+    if (!userId) return;
+
+    const allFilters = [
+      { key: "order_id", backendKey: "order_id", alwaysVisible: true },
+      {
+        key: "customer_reference_no",
+        backendKey: "customer_reference_no",
+        alwaysVisible: true,
+      },
+      ...filterOptions.map((f) => ({
+        key: f.key,
+        backendKey: (() => {
+          switch (f.key) {
+            case "customerID":
+              return "customer_id";
+            case "shippingAddress":
+              return "shipping_address";
+            case "customerNo":
+              return "customer_no";
+            case "tracking":
+              return "tracking";
+            case "profitName":
+              return "profit_name";
+            case "retailerName":
+              return "retailer";
+            case "orderStatus":
+              return "order_status";
+            case "fulfillmentStatus":
+              return "fulfillment_status";
+            case "psiNumber":
+              return "psi_number";
+            case "phone_no":
+              return "phone_no";
+            case "your_reference":
+              return "your_reference";
+            default:
+              return f.key;
+          }
+        })(),
+        alwaysVisible: false,
+      })),
+    ];
+
+    const backendData = allFilters.map((f) => ({
+      user_id: userId,
+      endpoint: "customer_orders",
+      filter_name: "CUSTOMER_ORDERS_FILTER_COLUMN_MAP",
+      filters: f.backendKey,
+      flag: f.alwaysVisible || pendingFilters.includes(f.key),
+    }));
+
+    try {
+      const toastId = toast.loading("Saving filter preferences...");
+      const result = await updateFilterPrefs({ data: backendData }).unwrap();
+      if (result?.success || result?.status === "success") {
+        toast.success("Filter preferences saved", { id: toastId });
+      } else {
+        toast.error("Failed to update filter preferences.", { id: toastId });
+      }
+    } catch (error) {
+      toast.error("Error saving filter preferences.");
+    }
+  };
+
   const hasActiveFilters = activeFilters.length > 0;
   // ----------------------------------------------------------------
 
@@ -921,13 +1058,6 @@ const Orders = ({ customerId }: { customerId?: string }) => {
               </Box>
 
               <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                {/* <CustomDatePicker
-                  label="Order Date"
-                  value={dateInput}
-                  setValue={setDateInput}
-                  setFilter={setDateFilter}
-                  setPage={setPage}
-                /> */}
                 <CustomDateRangePicker
                   startDate={startDate}
                   endDate={endDate}
@@ -950,7 +1080,13 @@ const Orders = ({ customerId }: { customerId?: string }) => {
             </Box>
 
             {/* ---------------- Dynamic Filters Row (NEW) ---------------- */}
-            <Box display="flex" flexWrap="wrap" gap={2} alignItems="center">
+            <Box
+              display="flex"
+              flexWrap="wrap"
+              gap={2}
+              alignItems="center"
+              justifyContent="space-between"
+            >
               {/* Always visible 3 filters */}
               <SearchInput
                 label="Order ID"
@@ -1177,7 +1313,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                       )}
 
                       {/* small close icon for quick remove */}
-                      {isActive && (
+                      {/* {isActive && (
                         <IconButton
                           size="small"
                           // onClick={() => handleRemoveFilter(f.key)}
@@ -1186,98 +1322,367 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                         >
                           <Close fontSize="small" />
                         </IconButton>
-                      )}
+                      )} */}
                     </Box>
                   </Fade>
                 );
               })}
 
-              {/* Add Filters popover (icon button) */}
-              <Tooltip title="Add Filters">
-                <IconButton
-                  color="default"
-                  onClick={(e) => setAnchorElFilters(e.currentTarget)}
-                  size="medium"
-                >
-                  <Badge
-                    color="primary"
-                    variant="dot"
-                    invisible={!hasActiveFilters}
-                    overlap="circular"
+              <Box display="flex" alignItems="center" gap={1} ml="auto">
+                {/* Add Filters popover (icon button) */}
+                <Tooltip title="Add Filters">
+                  <IconButton
+                    color="default"
+                    onClick={(e) => {
+                      setPendingFilters(activeFilters);
+                      setFilterSearchText("");
+                      setAnchorElFilters(e.currentTarget);
+                    }}
+                    size="medium"
                   >
-                    <FilterListIcon
-                      color={hasActiveFilters ? "primary" : "inherit"}
-                    />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
+                    <Badge
+                      color="primary"
+                      variant="dot"
+                      invisible={!hasActiveFilters}
+                      overlap="circular"
+                    >
+                      <FilterListIcon
+                        color={hasActiveFilters ? "primary" : "inherit"}
+                      />
+                    </Badge>
+                  </IconButton>
+                </Tooltip>
+
+                {(userId === "kav1" ||
+                  userId === "mdb1" ||
+                  userId === "mdb20" ||
+                  userId === "mdb15") && (
+                  <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => setOpenCreateOrder(true)}
+                    sx={{
+                      background:
+                        "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: "14px",
+                      borderRadius: "8px",
+                      padding: "8px 20px",
+                      textTransform: "none",
+                      whiteSpace: "nowrap",
+                      boxShadow: "0 4px 14px rgba(99, 102, 241, 0.4)",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)",
+                        boxShadow: "0 6px 20px rgba(99, 102, 241, 0.55)",
+                      },
+                    }}
+                  >
+                    Create Order
+                  </Button>
+                )}
+              </Box>
 
               <Popover
                 open={Boolean(anchorElFilters)}
                 anchorEl={anchorElFilters}
                 onClose={() => setAnchorElFilters(null)}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+                PaperProps={{
+                  sx: {
+                    borderRadius: "16px",
+                    boxShadow: "0 12px 40px rgba(0,0,0,0.16)",
+                    overflow: "hidden",
+                    width: 280,
+                    mt: 0.75,
+                    fontFamily: "Inter, sans-serif",
+                  },
                 }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
-                PaperProps={{ style: { padding: 8, maxWidth: 320 } }}
               >
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  gap={1}
-                  minWidth={220}
-                >
-                  {filterOptions.map((f) => (
-                    <FormControlLabel
-                      key={f.key}
-                      control={
-                        <Checkbox
-                          checked={activeFilters.includes(f.key)}
-                          // onChange={() => handleToggleFilter(f.key)}
-                          onChange={() => handleToggleFilterWithSave(f.key)}
-                        />
-                      }
-                      label={f.label}
+                <Box display="flex" flexDirection="column">
+                  {/* Gradient Header */}
+                  <Box
+                    sx={{
+                      background:
+                        "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                      px: 2,
+                      py: 1.75,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        background: "rgba(255,255,255,0.18)",
+                        borderRadius: "8px",
+                        width: 32,
+                        height: 32,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <FilterAltIcon sx={{ color: "#fff", fontSize: 18 }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        sx={{
+                          color: "#fff",
+                          fontWeight: 700,
+                          fontSize: "14px",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        Filters
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: "rgba(255,255,255,0.75)",
+                          fontSize: "11px",
+                          mt: 0.25,
+                        }}
+                      >
+                        Select filters to display
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Search */}
+                  <Box sx={{ px: 1.5, pt: 1.5, pb: 1 }}>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="Search filters..."
+                      value={filterSearchText}
+                      onChange={(e) => setFilterSearchText(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search sx={{ fontSize: 16, color: "#9CA3AF" }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "8px",
+                          fontSize: "13px",
+                          backgroundColor: "#F9FAFB",
+                          "& fieldset": {
+                            borderColor: "#E5E7EB",
+                            borderWidth: "1.5px",
+                          },
+                          "&:hover fieldset": { borderColor: "#C4B5FD" },
+                          "&.Mui-focused fieldset": {
+                            borderColor: "#6366F1",
+                            borderWidth: "1.5px",
+                          },
+                        },
+                        "& .MuiInputBase-input::placeholder": {
+                          color: "#9CA3AF",
+                          fontSize: "13px",
+                        },
+                      }}
                     />
-                  ))}
+                  </Box>
+
+                  {/* Section label */}
+                  <Typography
+                    sx={{
+                      px: 2,
+                      pb: 0.5,
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      color: "#9CA3AF",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    Available Filters
+                  </Typography>
+
+                  {/* Options list */}
+                  <Box
+                    sx={{
+                      maxHeight: 240,
+                      overflowY: "auto",
+                      px: 1,
+                      pb: 0.5,
+                      "&::-webkit-scrollbar": { width: "4px" },
+                      "&::-webkit-scrollbar-track": {
+                        background: "transparent",
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        background: "rgba(99,102,241,0.3)",
+                        borderRadius: "8px",
+                      },
+                      "&::-webkit-scrollbar-thumb:hover": {
+                        background: "rgba(99,102,241,0.55)",
+                      },
+                    }}
+                  >
+                    {filterOptions
+                      .filter(
+                        (f) =>
+                          filterSearchText === "" ||
+                          f.label
+                            .toLowerCase()
+                            .includes(filterSearchText.toLowerCase()),
+                      )
+                      .map((f) => {
+                        const isChecked = pendingFilters.includes(f.key);
+                        return (
+                          <Box
+                            key={f.key}
+                            display="flex"
+                            alignItems="center"
+                            sx={{
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                              transition: "background 0.12s",
+                              bgcolor: isChecked ? "#F5F3FF" : "transparent",
+                              "&:hover": {
+                                bgcolor: isChecked ? "#EDE9FE" : "#F9FAFB",
+                              },
+                            }}
+                            onClick={() =>
+                              setPendingFilters((prev) =>
+                                prev.includes(f.key)
+                                  ? prev.filter((k) => k !== f.key)
+                                  : [...prev, f.key],
+                              )
+                            }
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              size="small"
+                              sx={{
+                                color: "#D1D5DB",
+                                "&.Mui-checked": { color: "#6366F1" },
+                                p: 0.5,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                ml: 0.75,
+                                fontSize: "13px",
+                                fontWeight: isChecked ? 600 : 400,
+                                color: isChecked ? "#4338CA" : "#374151",
+                                userSelect: "none",
+                              }}
+                            >
+                              {f.label}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                  </Box>
+
+                  {/* Divider */}
+                  <Box
+                    sx={{ borderTop: "1px solid #F3F4F6", mx: 1.5, mt: 0.5 }}
+                  />
+
+                  {/* Footer */}
+                  <Box sx={{ px: 1.5, pt: 1.25, pb: 1.5 }}>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      onClick={handleApplyFilters}
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        py: 1,
+                        boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
+                        letterSpacing: "0.01em",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)",
+                          boxShadow: "0 6px 20px rgba(99,102,241,0.5)",
+                        },
+                      }}
+                    >
+                      Apply
+                    </Button>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      mt={1}
+                    >
+                      <Typography sx={{ fontSize: "12px", color: "#9CA3AF" }}>
+                        {pendingFilters.length} selected
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          color: "#6366F1",
+                          cursor: "pointer",
+                          "&:hover": {
+                            color: "#4338CA",
+                            textDecoration: "underline",
+                          },
+                        }}
+                        onClick={() => setPendingFilters([])}
+                      >
+                        Clear all
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Popover>
 
-              {/* {userId === "kav1" && (
+              {(userId === "kav1" ||
+                userId === "mdb1" ||
+                userId === "mdb20" ||
+                userId === "mdb15" ||
+                userId === "mdb14") && (
                 <>
-                  <Box display="flex" justifyContent="flex-end" mb={2}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<Add />}
-                      onClick={() => setOpenCreateOrder(true)}
-                    >
-                      Create Order
-                    </Button>
-                  </Box>
                   <Dialog
                     open={openCreateOrder}
                     onClose={() => setOpenCreateOrder(false)}
                     maxWidth="md"
                     fullWidth
+                    PaperProps={{
+                      sx: { borderRadius: "16px", overflow: "hidden", m: 0 },
+                    }}
                   >
-                    <DialogTitle>Create New Order</DialogTitle>
-                    <DialogContent>
-                      <ShopifyOrderForm />
+                    <DialogContent
+                      sx={{
+                        p: 0,
+                        overflowY: "auto",
+                        "&::-webkit-scrollbar": {
+                          width: "5px",
+                        },
+                        "&::-webkit-scrollbar-track": {
+                          background: "transparent",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                          background: "rgba(99, 102, 241, 0.35)",
+                          borderRadius: "10px",
+                        },
+                        "&::-webkit-scrollbar-thumb:hover": {
+                          background: "rgba(99, 102, 241, 0.65)",
+                        },
+                      }}
+                    >
+                      <ShopifyOrderForm
+                        onClose={() => setOpenCreateOrder(false)}
+                      />
                     </DialogContent>
-                    <DialogActions>
-                      <Button onClick={() => setOpenCreateOrder(false)}>
-                        Cancel
-                      </Button>
-                    </DialogActions>
                   </Dialog>
                 </>
-              )} */}
+              )}
               {/* Reset all button (optional placement) */}
               {/* <Box sx={{ marginLeft: "auto" }}>
                 <Button

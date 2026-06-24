@@ -9,6 +9,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import Sidebar from "./Sidebar";
 import GenieChatbot from "@/components/GenieChatbot";
+// import GeniePanel from "@/components/GeniePanel"; // pending prod domain whitelisting
 import { useRouter } from "next/navigation";
 import {
   Typography,
@@ -30,6 +31,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
   activeMenu,
 }) => {
   const router = useRouter();
+  // const [openGenieOpen, setOpenGenieOpen] = useState(false); // pending prod domain whitelisting
   const [genieOpen, setGenieOpen] = useState(false);
 
   const handleLogout = () => {
@@ -37,9 +39,6 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
     clearAuthData();
     router.push("/sign-in");
   };
-  // const userId = localStorage.getItem("user_id") || "";
-  // const isAdmin = userId === "kav1" || userId === "mdb1";
-  const [isAdmin, setIsAdmin] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   const menuItems = [
@@ -79,6 +78,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
       icon: <AdminPanelSettingsIcon />,
       path: "/admin-oversight",
     },
+    // { key: "Open Genie", label: "Open Genie", icon: <InsightsIcon />, onClick: () => {} }, // pending prod domain whitelisting
   ];
   const [filteredMenuItems, setFilteredMenuItems] = useState(menuItems);
   useEffect(() => {
@@ -96,7 +96,6 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
     if (!userId) return; // wait until userId is loaded
 
     const admin = userId === "kav1" || userId === "mdb1";
-    setIsAdmin(admin);
 
     setFilteredMenuItems(
       menuItems.filter((item) => {
@@ -121,7 +120,10 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
         />
       </Box>
 
-      {/* Genie Chatbot panel */}
+      {/* Open Genie iframe panel — pending prod domain whitelisting */}
+      {/* <GeniePanel open={openGenieOpen} onClose={() => setOpenGenieOpen(false)} sidebarWidth={200} /> */}
+
+      {/* Genie AI chatbot panel */}
       <GenieChatbot
         open={genieOpen}
         onClose={() => setGenieOpen(false)}

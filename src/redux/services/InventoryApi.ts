@@ -182,9 +182,6 @@ export const inventoryApi = createApi({
         item_no?: string;
         location_code?: any;
         description?: string;
-        description_2?: string;
-        brand?: string;
-        property_code?: string;
         eta?: string;
         qty?: number;
         qty_available?: number;
@@ -201,9 +198,6 @@ export const inventoryApi = createApi({
         item_no,
         location_code,
         description,
-        description_2,
-        brand,
-        property_code,
         eta,
         qty,
         qty_available,
@@ -228,9 +222,6 @@ export const inventoryApi = createApi({
           params.set("location_code", location_code);
         }
         if (description) params.set("description", description);
-        if (description_2) params.set("description_2", description_2);
-        if (brand) params.set("brand", brand);
-        if (property_code) params.set("property_code", property_code);
         if (eta) params.set("eta", eta);
         if (qty !== undefined) params.set("qty", qty.toString());
         if (qty_available !== undefined)
@@ -387,8 +378,13 @@ export const inventoryApi = createApi({
         if (order_id) params.set("order_id", order_id);
         // if (lot_no !== undefined) params.set("lot_no", lot_no ?? "");
         // if (lot_no) params.set("lot_no", lot_no);
-        if (lot_no)
-          params.set("lot_no", isFromProps ? lot_no : `like:${lot_no}`);
+        if (lot_no !== undefined) {
+          if (lot_no === null) {
+            params.set("lot_no", "null");
+          } else {
+            params.set("lot_no", isFromProps ? lot_no : `like:${lot_no}`);
+          }
+        }
         // if (sku) params.set("sku", sku);
         if (sku) params.set("sku", isFromProps ? sku : `like:${sku}`);
         if (customer_id) params.set("customer_id", customer_id);
@@ -478,6 +474,48 @@ export const inventoryApi = createApi({
       },
     }),
 
+    getDistinctTouchupPens: builder.query<
+      any,
+      { search?: string; page_size?: number }
+    >({
+      query: ({ search = "", page_size = 100 }) => {
+        const params = new URLSearchParams();
+        params.set("search", search);
+        params.set("page_size", page_size.toString());
+        return `touchup_pen/distinct?${params.toString()}`;
+      },
+      transformResponse: (response: any) => {
+        const items = response?.data || [];
+        return {
+          results: Array.isArray(items)
+            ? items.map((item: any) => ({
+                item_num: item.item_num,
+                item_name: item.item_name ?? null,
+                unit_price:
+                  item.unit_price != null ? Number(item.unit_price) : null,
+                qty_available:
+                  item.qty_available != null
+                    ? Number(item.qty_available)
+                    : null,
+              }))
+            : [],
+        };
+      },
+    }),
+
+    getDistinctTouchupItems: builder.query<
+      any,
+      { parts_item_no?: string; page?: number; page_size?: number }
+    >({
+      query: ({ parts_item_no, page = 1, page_size = 100 } = {}) => {
+        const params = new URLSearchParams();
+        params.set("page", page.toString());
+        params.set("page_size", page_size.toString());
+        if (parts_item_no) params.set("parts_item_no", parts_item_no);
+        return `touchup_part/distinct_items?${params.toString()}`;
+      },
+    }),
+
     getLifeCycleStatus: builder.query<any, string | void>({
       query: (name = "") => ({
         url: "/inventory/life_cycle_status",
@@ -501,6 +539,8 @@ export const {
   useGetLocationItemLotQuery,
   useGetTouchupsQuery,
   useGetTouchupPensQuery,
+  useGetDistinctTouchupPensQuery,
+  useGetDistinctTouchupItemsQuery,
   useGetLifeCycleStatusQuery,
   useGetNavETAQuery,
   useGetItemTrackingCommentsQuery,

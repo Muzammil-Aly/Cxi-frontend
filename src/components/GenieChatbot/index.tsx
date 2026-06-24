@@ -107,11 +107,8 @@ function extractGenieResponse(data: any): {
   const rawContent =
     parts.join("\n\n") || "Received a response but there was no text content.";
 
-  const cleanedContent = rawContent.replace(/\*\*/g, "");
-
   return {
-    content:
-      cleanedContent || "Received a response but there was no text content.",
+    content: rawContent || "Received a response but there was no text content.",
     suggestions,
     tableData,
     messageId,
@@ -156,13 +153,11 @@ function parseDbxMessages(raw: any): Message[] {
     if (parts.length > 0 || suggestions.length > 0 || tableData) {
       const rawContent = parts.join("\n\n");
 
-      const cleanedContent = rawContent.replace(/\*\*/g, "");
-
       result.push({
         role: "assistant",
         id: m.message_id,
         rating: m.feedback?.rating ?? "NONE",
-        content: cleanedContent,
+        content: rawContent,
         suggestions,
         tableData,
       });
@@ -171,6 +166,282 @@ function parseDbxMessages(raw: any): Message[] {
 
   return result;
 }
+
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    const m = part.match(/^\*\*(.+)\*\*$/);
+    if (m)
+      return (
+        <strong key={i} style={{ fontWeight: 700, color: "#131C55" }}>
+          {m[1]}
+        </strong>
+      );
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
+}
+
+function renderContent(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+
+  lines.forEach((line, i) => {
+    if (line.trim() === "") {
+      nodes.push(<Box key={i} sx={{ height: 6 }} />);
+      return;
+    }
+
+    // Full-line bold → section header
+    const headerMatch = line.match(/^\*\*(.+)\*\*\s*:?\s*$/);
+    if (headerMatch) {
+      nodes.push(
+        <Typography
+          key={i}
+          sx={{
+            fontWeight: 700,
+            fontSize: 13,
+            color: "#131C55",
+            mt: 1.25,
+            mb: 0.25,
+            lineHeight: 1.5,
+          }}
+        >
+          {headerMatch[1]}
+        </Typography>,
+      );
+      return;
+    }
+
+    // Bullet list: lines starting with - or •
+    const bulletMatch = line.match(/^[-•]\s+(.+)/);
+    if (bulletMatch) {
+      nodes.push(
+        <Box
+          key={i}
+          sx={{ display: "flex", gap: 0.75, alignItems: "flex-start", ml: 0.5 }}
+        >
+          <Typography
+            component="span"
+            sx={{
+              color: "#4658AC",
+              fontSize: 15,
+              lineHeight: 1.5,
+              flexShrink: 0,
+            }}
+          >
+            ◦
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#0D0D12",
+              wordBreak: "break-word",
+            }}
+          >
+            {renderInline(bulletMatch[1])}
+          </Typography>
+        </Box>,
+      );
+      return;
+    }
+
+    // Numbered list: lines starting with 1. 2. etc
+    const numMatch = line.match(/^(\d+)\.\s+(.+)/);
+    if (numMatch) {
+      nodes.push(
+        <Box
+          key={i}
+          sx={{ display: "flex", gap: 0.75, alignItems: "flex-start", ml: 0.5 }}
+        >
+          <Typography
+            component="span"
+            sx={{
+              color: "#4658AC",
+              fontWeight: 700,
+              fontSize: 12,
+              lineHeight: 1.6,
+              flexShrink: 0,
+              minWidth: 16,
+            }}
+          >
+            {numMatch[1]}.
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#0D0D12",
+              wordBreak: "break-word",
+            }}
+          >
+            {renderInline(numMatch[2])}
+          </Typography>
+        </Box>,
+      );
+      return;
+    }
+
+    // Regular line
+    nodes.push(
+      <Typography
+        key={i}
+        sx={{
+          fontSize: 13,
+          lineHeight: 1.6,
+          color: "#0D0D12",
+          wordBreak: "break-word",
+        }}
+      >
+        {renderInline(line)}
+      </Typography>,
+    );
+  });
+
+  return <>{nodes}</>;
+}
+
+const ROWS_PER_PAGE = 8;
+
+const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
+  const [page, setPage] = useState(0);
+  const totalPages = Math.ceil(data.rows.length / ROWS_PER_PAGE);
+  const visibleRows = data.rows.slice(
+    page * ROWS_PER_PAGE,
+    (page + 1) * ROWS_PER_PAGE,
+  );
+
+  return (
+    <Box
+      sx={{
+        mt: 1.5,
+        borderRadius: "8px",
+        border: "1px solid #E0E4F0",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          overflowX: "auto",
+          "&::-webkit-scrollbar": { height: 4 },
+          "&::-webkit-scrollbar-thumb": { bgcolor: "#C8CDF0", borderRadius: 2 },
+        }}
+      >
+        <Table size="small" sx={{ minWidth: "max-content", width: "100%" }}>
+          <TableHead>
+            <TableRow sx={{ bgcolor: "#EEF0FA" }}>
+              {data.columns.map((col) => (
+                <TableCell
+                  key={col}
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "#4658AC",
+                    py: 0.75,
+                    px: 1.5,
+                    borderBottom: "1px solid #C8CDF0",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {col}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {visibleRows.map((row, ri) => (
+              <TableRow
+                key={ri}
+                sx={{
+                  "&:last-child td": { border: 0 },
+                  "&:hover": { bgcolor: "#F4F6FB" },
+                }}
+              >
+                {row.map((cell, ci) => (
+                  <TableCell
+                    key={ci}
+                    sx={{
+                      fontSize: 12,
+                      py: 0.6,
+                      px: 1.5,
+                      color: "#0D0D12",
+                      borderBottom: "1px solid #F0F0F0",
+                    }}
+                  >
+                    {cell}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Box>
+
+      {totalPages > 1 && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.5,
+            py: 1,
+            borderTop: "1px solid #E0E4F0",
+            bgcolor: "#FAFBFF",
+          }}
+        >
+          <IconButton
+            size="small"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+            sx={{
+              width: 26,
+              height: 26,
+              fontSize: 13,
+              color: page === 0 ? "#ccc" : "#4658AC",
+            }}
+          >
+            {"<"}
+          </IconButton>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <Box
+              key={i}
+              onClick={() => setPage(i)}
+              sx={{
+                width: 26,
+                height: 26,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+                fontSize: 12,
+                fontWeight: i === page ? 700 : 400,
+                cursor: "pointer",
+                bgcolor: i === page ? "#131C55" : "transparent",
+                color: i === page ? "#fff" : "#4658AC",
+                "&:hover": { bgcolor: i === page ? "#131C55" : "#EEF0FA" },
+              }}
+            >
+              {i + 1}
+            </Box>
+          ))}
+          <IconButton
+            size="small"
+            disabled={page === totalPages - 1}
+            onClick={() => setPage((p) => p + 1)}
+            sx={{
+              width: 26,
+              height: 26,
+              fontSize: 13,
+              color: page === totalPages - 1 ? "#ccc" : "#4658AC",
+            }}
+          >
+            {">"}
+          </IconButton>
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 function formatDate(ts: number): string {
   if (!ts) return "";
@@ -199,8 +470,8 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
   const [confirmDeleteConvId, setConfirmDeleteConvId] = useState<string | null>(
     null,
   );
-  const [tableRowLimits, setTableRowLimits] = useState<Record<number, number>>({});
-  const TABLE_PAGE_SIZE = 10;
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [startConversation, { isLoading: isStarting }] =
@@ -218,6 +489,20 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
   } = useGetMyConversationsQuery(undefined, { skip: !open });
 
   const isLoading = isStarting || isSending;
+
+  useEffect(() => {
+    if (open) {
+      setIsVisible(true);
+      setIsClosing(false);
+    } else if (isVisible) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setIsClosing(false);
+      }, 380);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -281,7 +566,6 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
     setConversationId(null);
     setInput("");
     setFeedback({});
-    setTableRowLimits({});
     setView("chat");
   };
 
@@ -296,7 +580,6 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
     setConversationId(convId);
     setMessages([]);
     setFeedback({});
-    setTableRowLimits({});
     try {
       const raw = await fetchMessages(convId).unwrap();
       const parsed = parseDbxMessages(raw);
@@ -389,7 +672,7 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
     }
   };
 
-  if (!open) return null;
+  if (!isVisible) return null;
 
   const conversations = (historyData?.conversations ?? []).filter(
     (c) => !deletedConvIds.has(c.conversation_id),
@@ -401,7 +684,7 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
         position: "fixed",
         top: 0,
         left: sidebarWidth,
-        width: 360,
+        width: 560,
         height: "100vh",
         bgcolor: "#fff",
         borderRight: "1px solid #E0E4F0",
@@ -409,6 +692,46 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
         flexDirection: "column",
         zIndex: 1199,
         boxShadow: "4px 0 16px rgba(0,0,0,0.08)",
+        transformOrigin: "bottom left",
+        animation: isClosing
+          ? "genieOut 0.38s cubic-bezier(0.4, 0, 0.6, 1) forwards"
+          : "genieIn 0.44s cubic-bezier(0.34, 1.15, 0.64, 1) forwards",
+        "@keyframes genieIn": {
+          "0%": {
+            clipPath: "polygon(5% 100%, 95% 100%, 80% 100%, 20% 100%)",
+            opacity: 0,
+          },
+          "20%": {
+            clipPath: "polygon(10% 78%, 90% 78%, 92% 100%, 8% 100%)",
+            opacity: 0.6,
+          },
+          "55%": {
+            clipPath: "polygon(2% 22%, 98% 22%, 100% 100%, 0% 100%)",
+            opacity: 1,
+          },
+          "100%": {
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+            opacity: 1,
+          },
+        },
+        "@keyframes genieOut": {
+          "0%": {
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+            opacity: 1,
+          },
+          "45%": {
+            clipPath: "polygon(2% 22%, 98% 22%, 100% 100%, 0% 100%)",
+            opacity: 1,
+          },
+          "80%": {
+            clipPath: "polygon(10% 78%, 90% 78%, 92% 100%, 8% 100%)",
+            opacity: 0.5,
+          },
+          "100%": {
+            clipPath: "polygon(50% 100%, 50% 100%, 50% 100%, 50% 100%)",
+            opacity: 0,
+          },
+        },
       }}
     >
       {/* ── Header ── */}
@@ -669,7 +992,14 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
                   >
                     <Box
                       sx={{
-                        maxWidth: "85%",
+                        maxWidth:
+                          msg.role === "assistant" && msg.tableData
+                            ? "100%"
+                            : "85%",
+                        width:
+                          msg.role === "assistant" && msg.tableData
+                            ? "100%"
+                            : undefined,
                         px: 1.5,
                         py: 1,
                         borderRadius:
@@ -680,118 +1010,26 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
                         color: msg.role === "user" ? "#fff" : "#0D0D12",
                       }}
                     >
-                      {msg.content && (
-                        <Typography
-                          sx={{
-                            fontSize: 13,
-                            lineHeight: 1.6,
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                          }}
-                        >
-                          {msg.content}
-                        </Typography>
-                      )}
+                      {msg.content &&
+                        (msg.role === "assistant" ? (
+                          <Box sx={{ wordBreak: "break-word" }}>
+                            {renderContent(msg.content)}
+                          </Box>
+                        ) : (
+                          <Typography
+                            sx={{
+                              fontSize: 13,
+                              lineHeight: 1.6,
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                              color: "#0D0D12",
+                            }}
+                          >
+                            {msg.content}
+                          </Typography>
+                        ))}
                       {msg.tableData && (
-                        <Box
-                          sx={{
-                            mt: 1.5,
-                            overflowX: "auto",
-                            borderRadius: "8px",
-                            border: "1px solid #E0E4F0",
-                            "&::-webkit-scrollbar": { height: 4 },
-                            "&::-webkit-scrollbar-thumb": {
-                              bgcolor: "#C8CDF0",
-                              borderRadius: 2,
-                            },
-                          }}
-                        >
-                          <Table size="small" sx={{ minWidth: "max-content" }}>
-                            <TableHead>
-                              <TableRow sx={{ bgcolor: "#EEF0FA" }}>
-                                {msg.tableData.columns.map((col) => (
-                                  <TableCell
-                                    key={col}
-                                    sx={{
-                                      fontSize: 11,
-                                      fontWeight: 700,
-                                      color: "#131C55",
-                                      py: 0.75,
-                                      px: 1,
-                                      borderBottom: "1px solid #C8CDF0",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    {col}
-                                  </TableCell>
-                                ))}
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {msg.tableData.rows
-                                .slice(0, tableRowLimits[idx] ?? TABLE_PAGE_SIZE)
-                                .map((row, ri) => (
-                                  <TableRow
-                                    key={ri}
-                                    sx={{
-                                      "&:last-child td": { border: 0 },
-                                      "&:hover": { bgcolor: "#F4F6FB" },
-                                    }}
-                                  >
-                                    {row.map((cell, ci) => (
-                                      <TableCell
-                                        key={ci}
-                                        sx={{
-                                          fontSize: 11,
-                                          py: 0.5,
-                                          px: 1,
-                                          color: "#0D0D12",
-                                          whiteSpace: "nowrap",
-                                          borderBottom: "1px solid #F0F0F0",
-                                        }}
-                                      >
-                                        {cell}
-                                      </TableCell>
-                                    ))}
-                                  </TableRow>
-                                ))}
-                            </TableBody>
-                          </Table>
-                          {msg.tableData.rows.length > (tableRowLimits[idx] ?? TABLE_PAGE_SIZE) && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                py: 0.75,
-                                borderTop: "1px solid #E0E4F0",
-                              }}
-                            >
-                              <Button
-                                size="small"
-                                onClick={() =>
-                                  setTableRowLimits((prev) => ({
-                                    ...prev,
-                                    [idx]: (prev[idx] ?? TABLE_PAGE_SIZE) + TABLE_PAGE_SIZE,
-                                  }))
-                                }
-                                sx={{
-                                  fontSize: 11,
-                                  color: "#131C55",
-                                  textTransform: "none",
-                                  py: 0.25,
-                                  "&:hover": { bgcolor: "#EEF0FA" },
-                                }}
-                              >
-                                Show{" "}
-                                {Math.min(
-                                  TABLE_PAGE_SIZE,
-                                  msg.tableData.rows.length - (tableRowLimits[idx] ?? TABLE_PAGE_SIZE),
-                                )}{" "}
-                                more rows
-                              </Button>
-                            </Box>
-                          )}
-                        </Box>
+                        <TableWithPagination data={msg.tableData} />
                       )}
                     </Box>
                   </Box>
@@ -964,7 +1202,7 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
             >
               <TextField
                 multiline
-                maxRows={4}
+                maxRows={8}
                 fullWidth
                 placeholder="Ask Genie…"
                 value={input}
@@ -1012,7 +1250,7 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
       <Dialog
         open={!!confirmDeleteConvId}
         onClose={() => setConfirmDeleteConvId(null)}
-        PaperProps={{ sx: { borderRadius: 2, minWidth: 280 } }}
+        slotProps={{ paper: { sx: { borderRadius: 2, minWidth: 280 } } }}
       >
         <DialogTitle sx={{ fontSize: 15, fontWeight: 700, pb: 1 }}>
           Delete conversation?
