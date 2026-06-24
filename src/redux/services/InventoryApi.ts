@@ -192,6 +192,9 @@ export const inventoryApi = createApi({
         page_size?: number;
         life_cycle_status_code?: string;
         source?: string;
+        description_2?: string;
+        brand?: string;
+        property_code?: string;
       }
     >({
       query: ({
@@ -208,6 +211,9 @@ export const inventoryApi = createApi({
         page = 1,
         page_size = 10,
         source,
+        description_2,
+        brand,
+        property_code,
       }) => {
         const params = new URLSearchParams();
         params.set("page", page.toString());
@@ -222,6 +228,9 @@ export const inventoryApi = createApi({
           params.set("location_code", location_code);
         }
         if (description) params.set("description", description);
+        if (description_2) params.set("description_2", description_2);
+        if (brand) params.set("brand", brand);
+        if (property_code) params.set("property_code", property_code);
         if (eta) params.set("eta", eta);
         if (qty !== undefined) params.set("qty", qty.toString());
         if (qty_available !== undefined)
