@@ -303,9 +303,54 @@ function renderContent(text: string): React.ReactNode {
 
 const ROWS_PER_PAGE = 8;
 
+function getPageRange(current: number, total: number): (number | "...")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+  const pages: (number | "...")[] = [0];
+  if (current > 3) pages.push("...");
+  const start = Math.max(1, current - 2);
+  const end = Math.min(total - 2, current + 2);
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (current < total - 4) pages.push("...");
+  pages.push(total - 1);
+  return pages;
+}
+
+
+const PageBtn: React.FC<{
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ active, disabled, onClick, children }) => (
+  <Box
+    onClick={disabled ? undefined : onClick}
+    sx={{
+      minWidth: 28,
+      height: 28,
+      px: 0.5,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "7px",
+      fontSize: 12,
+      fontWeight: active ? 700 : 400,
+      cursor: disabled ? "default" : "pointer",
+      userSelect: "none",
+      transition: "background 0.15s, color 0.15s",
+      bgcolor: active ? "#131C55" : "transparent",
+      color: active ? "#fff" : disabled ? "#D0D4E8" : "#4658AC",
+      "&:hover": disabled ? {} : { bgcolor: active ? "#1a2570" : "#EEF0FA" },
+    }}
+  >
+    {children}
+  </Box>
+);
+
 const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
   const [page, setPage] = useState(0);
   const totalPages = Math.ceil(data.rows.length / ROWS_PER_PAGE);
+  const startRow = page * ROWS_PER_PAGE + 1;
+  const endRow = Math.min((page + 1) * ROWS_PER_PAGE, data.rows.length);
   const visibleRows = data.rows.slice(
     page * ROWS_PER_PAGE,
     (page + 1) * ROWS_PER_PAGE,
@@ -315,21 +360,54 @@ const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
     <Box
       sx={{
         mt: 1.5,
-        borderRadius: "8px",
+        borderRadius: "10px",
         border: "1px solid #E0E4F0",
         overflow: "hidden",
+        boxShadow: "0 1px 4px rgba(19,28,85,0.06)",
       }}
     >
+      {/* ── Info bar ── */}
+      <Box
+        sx={{
+          px: 1.5,
+          py: 0.6,
+          bgcolor: "#F4F6FB",
+          borderBottom: "1px solid #E0E4F0",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Typography sx={{ fontSize: 10.5, color: "#8E92AD", fontWeight: 500 }}>
+          {data.rows.length} rows
+        </Typography>
+        <Box
+          sx={{ width: 3, height: 3, borderRadius: "50%", bgcolor: "#C8CDF0" }}
+        />
+        <Typography sx={{ fontSize: 10.5, color: "#8E92AD", fontWeight: 500 }}>
+          {data.columns.length} columns
+        </Typography>
+      </Box>
+
+      {/* ── Scrollable table ── */}
       <Box
         sx={{
           overflowX: "auto",
-          "&::-webkit-scrollbar": { height: 4 },
-          "&::-webkit-scrollbar-thumb": { bgcolor: "#C8CDF0", borderRadius: 2 },
+          "&::-webkit-scrollbar": { height: 5 },
+          "&::-webkit-scrollbar-track": { bgcolor: "#F4F6FB" },
+          "&::-webkit-scrollbar-thumb": {
+            bgcolor: "#C8CDF0",
+            borderRadius: 4,
+            "&:hover": { bgcolor: "#9BA3D4" },
+          },
         }}
       >
-        <Table size="small" sx={{ minWidth: "max-content", width: "100%" }}>
+        <Table
+          size="small"
+          sx={{ minWidth: "max-content", width: "100%", borderCollapse: "collapse" }}
+        >
           <TableHead>
-            <TableRow sx={{ bgcolor: "#EEF0FA" }}>
+            <TableRow>
               {data.columns.map((col) => (
                 <TableCell
                   key={col}
@@ -337,10 +415,12 @@ const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
                     fontSize: 11,
                     fontWeight: 700,
                     color: "#4658AC",
-                    py: 0.75,
+                    py: 0.9,
                     px: 1.5,
-                    borderBottom: "1px solid #C8CDF0",
+                    bgcolor: "#EEF0FA",
+                    borderBottom: "2px solid #C8CDF0",
                     whiteSpace: "nowrap",
+                    letterSpacing: "0.02em",
                   }}
                 >
                   {col}
@@ -353,8 +433,10 @@ const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
               <TableRow
                 key={ri}
                 sx={{
+                  bgcolor: ri % 2 === 0 ? "#fff" : "#FAFBFF",
+                  transition: "background 0.1s",
                   "&:last-child td": { border: 0 },
-                  "&:hover": { bgcolor: "#F4F6FB" },
+                  "&:hover td": { bgcolor: "#EEF0FA" },
                 }}
               >
                 {row.map((cell, ci) => (
@@ -362,13 +444,14 @@ const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
                     key={ci}
                     sx={{
                       fontSize: 12,
-                      py: 0.6,
+                      py: 0.65,
                       px: 1.5,
-                      color: "#0D0D12",
-                      borderBottom: "1px solid #F0F0F0",
+                      color: cell === null || cell === "" ? "#C0C4D6" : "#0D0D12",
+                      borderBottom: "1px solid #F0F2F8",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {cell}
+                    {cell === null || cell === "" ? "—" : cell}
                   </TableCell>
                 ))}
               </TableRow>
@@ -377,66 +460,52 @@ const TableWithPagination: React.FC<{ data: TableData }> = ({ data }) => {
         </Table>
       </Box>
 
+      {/* ── Pagination footer ── */}
       {totalPages > 1 && (
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            gap: 0.5,
-            py: 1,
+            justifyContent: "space-between",
+            px: 1.5,
+            py: 0.75,
             borderTop: "1px solid #E0E4F0",
-            bgcolor: "#FAFBFF",
+            bgcolor: "#F8F9FD",
           }}
         >
-          <IconButton
-            size="small"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            sx={{
-              width: 26,
-              height: 26,
-              fontSize: 13,
-              color: page === 0 ? "#ccc" : "#4658AC",
-            }}
-          >
-            {"<"}
-          </IconButton>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <Box
-              key={i}
-              onClick={() => setPage(i)}
-              sx={{
-                width: 26,
-                height: 26,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "6px",
-                fontSize: 12,
-                fontWeight: i === page ? 700 : 400,
-                cursor: "pointer",
-                bgcolor: i === page ? "#131C55" : "transparent",
-                color: i === page ? "#fff" : "#4658AC",
-                "&:hover": { bgcolor: i === page ? "#131C55" : "#EEF0FA" },
-              }}
+          <Typography sx={{ fontSize: 11, color: "#8E92AD", whiteSpace: "nowrap" }}>
+            {startRow}–{endRow} of {data.rows.length}
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+            <PageBtn disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+              ‹
+            </PageBtn>
+            {getPageRange(page, totalPages).map((item, idx) =>
+              item === "..." ? (
+                <Typography
+                  key={`el-${idx}`}
+                  sx={{ fontSize: 12, color: "#C0C4D6", px: 0.25, lineHeight: "28px" }}
+                >
+                  …
+                </Typography>
+              ) : (
+                <PageBtn
+                  key={item}
+                  active={item === page}
+                  onClick={() => setPage(item as number)}
+                >
+                  {(item as number) + 1}
+                </PageBtn>
+              ),
+            )}
+            <PageBtn
+              disabled={page === totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
             >
-              {i + 1}
-            </Box>
-          ))}
-          <IconButton
-            size="small"
-            disabled={page === totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            sx={{
-              width: 26,
-              height: 26,
-              fontSize: 13,
-              color: page === totalPages - 1 ? "#ccc" : "#4658AC",
-            }}
-          >
-            {">"}
-          </IconButton>
+              ›
+            </PageBtn>
+          </Box>
         </Box>
       )}
     </Box>
@@ -687,11 +756,10 @@ const GenieChatbot: React.FC<GenieChatbotProps> = ({
         width: 560,
         height: "100vh",
         bgcolor: "#fff",
-        borderRight: "1px solid #E0E4F0",
+        borderRight: "2px solid #E0E4F0",
         display: "flex",
         flexDirection: "column",
         zIndex: 1199,
-        boxShadow: "4px 0 16px rgba(0,0,0,0.08)",
         transformOrigin: "bottom left",
         animation: isClosing
           ? "genieOut 0.38s cubic-bezier(0.4, 0, 0.6, 1) forwards"

@@ -135,7 +135,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
         component="main"
         sx={{
           flexGrow: 1,
-          pl: genieOpen ? "370px" : 3,
+          pl: genieOpen ? "579px" : 3,
           transition: "padding-left 0.2s ease",
           overflowX: "hidden",
           display: "flex",
@@ -153,7 +153,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
             mb: 2,
             borderBottom: "1px solid #E0E0E0",
             bgcolor: "#fff",
-            pl: { xs: 0, sm: "90px" },
+            pl: genieOpen ? "64px" : { xs: 0, sm: "90px" },
             minHeight: "70px",
           }}
         >
