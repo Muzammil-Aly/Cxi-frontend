@@ -7,9 +7,12 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import EventIcon from "@mui/icons-material/Event";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+// import InsightsIcon from "@mui/icons-material/Insights"; // disabled for now, using Genie AI only
 import Sidebar from "./Sidebar";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+
 import GenieChatbot from "@/components/GenieChatbot";
-// import GeniePanel from "@/components/GeniePanel"; // pending prod domain whitelisting
+// import GeniePanel from "@/components/GeniePanel"; // disabled for now, using Genie AI only
 import { useRouter } from "next/navigation";
 import {
   Typography,
@@ -31,7 +34,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
   activeMenu,
 }) => {
   const router = useRouter();
-  // const [openGenieOpen, setOpenGenieOpen] = useState(false); // pending prod domain whitelisting
+  // const [openGenieOpen, setOpenGenieOpen] = useState(false); // disabled for now, using Genie AI only
   const [genieOpen, setGenieOpen] = useState(false);
 
   const handleLogout = () => {
@@ -78,7 +81,13 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
       icon: <AdminPanelSettingsIcon />,
       path: "/admin-oversight",
     },
-    // { key: "Open Genie", label: "Open Genie", icon: <InsightsIcon />, onClick: () => {} }, // pending prod domain whitelisting
+    {
+      key: "Parts Matrix",
+      label: "Parts Matrix",
+      icon: <LibraryBooksIcon />,
+      path: "/parts-matrix",
+    },
+    // { key: "Open Genie", label: "Open Genie", icon: <InsightsIcon />, onClick: () => setOpenGenieOpen((v) => !v) }, // disabled for now, using Genie AI only
   ];
   const [filteredMenuItems, setFilteredMenuItems] = useState(menuItems);
   useEffect(() => {
@@ -120,8 +129,12 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
         />
       </Box>
 
-      {/* Open Genie iframe panel — pending prod domain whitelisting */}
-      {/* <GeniePanel open={openGenieOpen} onClose={() => setOpenGenieOpen(false)} sidebarWidth={200} /> */}
+      {/* Open Genie iframe panel — disabled for now, using Genie AI only */}
+      {/* <GeniePanel
+        open={openGenieOpen}
+        onClose={() => setOpenGenieOpen(false)}
+        sidebarWidth={200}
+      /> */}
 
       {/* Genie AI chatbot panel */}
       <GenieChatbot

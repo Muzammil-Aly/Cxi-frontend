@@ -34,7 +34,34 @@ a {
   color: inherit;
   text-decoration: none;
 }
+/* Sleek custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
 
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(70, 88, 172, 0.25);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(70, 88, 172, 0.55);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(70, 88, 172, 0.25) transparent;
+}
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

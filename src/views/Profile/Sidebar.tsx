@@ -239,32 +239,26 @@ const Sidebar: React.FC<SidebarProps> = ({
       })}
 
       {/* Genie AI Toggle */}
-      {(userId === "kav1" ||
-        userId === "mdb1" ||
-        userId === "mdb20" ||
-        userId === "mdb15" ||
-        userId === "mdb14") && (
-        <Box
-          onClick={onGenieToggle}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            p: 1.5,
-            cursor: "pointer",
-            fontSize: 14,
-            fontWeight: genieOpen ? "bold" : "normal",
-            color: genieOpen ? "#A78BFA" : "#8E92AD",
-            borderRadius: "10px",
-            bgcolor: genieOpen ? "rgba(167,139,250,0.12)" : "transparent",
-            "&:hover": { color: "#A78BFA" },
-            transition: "all 0.2s",
-          }}
-        >
-          <AutoAwesomeIcon sx={{ fontSize: 20 }} />
-          Genie AI
-        </Box>
-      )}
+      <Box
+        onClick={onGenieToggle}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          p: 1.5,
+          cursor: "pointer",
+          fontSize: 14,
+          fontWeight: genieOpen ? "bold" : "normal",
+          color: genieOpen ? "#A78BFA" : "#8E92AD",
+          borderRadius: "10px",
+          bgcolor: genieOpen ? "rgba(167,139,250,0.12)" : "transparent",
+          "&:hover": { color: "#A78BFA" },
+          transition: "all 0.2s",
+        }}
+      >
+        <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+        Genie AI
+      </Box>
 
       {/* User Box */}
       <Box
