@@ -7,12 +7,12 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import EventIcon from "@mui/icons-material/Event";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-// import InsightsIcon from "@mui/icons-material/Insights"; // disabled for now, using Genie AI only
+import InsightsIcon from "@mui/icons-material/Insights";
 import Sidebar from "./Sidebar";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 
-import GenieChatbot from "@/components/GenieChatbot";
-// import GeniePanel from "@/components/GeniePanel"; // disabled for now, using Genie AI only
+// import GenieChatbot from "@/components/GenieChatbot"; // disabled for now, using Open Genie only
+import GeniePanel from "@/components/GeniePanel";
 import { useRouter } from "next/navigation";
 import {
   Typography,
@@ -34,8 +34,8 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
   activeMenu,
 }) => {
   const router = useRouter();
-  // const [openGenieOpen, setOpenGenieOpen] = useState(false); // disabled for now, using Genie AI only
-  const [genieOpen, setGenieOpen] = useState(false);
+  const [openGenieOpen, setOpenGenieOpen] = useState(false);
+  // const [genieOpen, setGenieOpen] = useState(false); // disabled for now, using Open Genie only
 
   const handleLogout = () => {
     // Clear all authentication data (tokens, cookies, localStorage)
@@ -87,7 +87,12 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
       icon: <LibraryBooksIcon />,
       path: "/parts-matrix",
     },
-    // { key: "Open Genie", label: "Open Genie", icon: <InsightsIcon />, onClick: () => setOpenGenieOpen((v) => !v) }, // disabled for now, using Genie AI only
+    {
+      key: "Open Genie",
+      label: "Open Genie",
+      icon: <InsightsIcon />,
+      onClick: () => setOpenGenieOpen((v) => !v),
+    },
   ];
   const [filteredMenuItems, setFilteredMenuItems] = useState(menuItems);
   useEffect(() => {
@@ -124,31 +129,31 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
           menuItems={filteredMenuItems}
           activeMenu={activeMenu}
           onLogout={handleLogout}
-          genieOpen={genieOpen}
-          onGenieToggle={() => setGenieOpen((v) => !v)}
+          // genieOpen={genieOpen} // disabled for now, using Open Genie only
+          // onGenieToggle={() => setGenieOpen((v) => !v)} // disabled for now, using Open Genie only
         />
       </Box>
 
-      {/* Open Genie iframe panel — disabled for now, using Genie AI only */}
-      {/* <GeniePanel
+      {/* Open Genie iframe panel */}
+      <GeniePanel
         open={openGenieOpen}
         onClose={() => setOpenGenieOpen(false)}
         sidebarWidth={200}
-      /> */}
+      />
 
-      {/* Genie AI chatbot panel */}
-      <GenieChatbot
+      {/* Genie AI chatbot panel — disabled for now, using Open Genie only */}
+      {/* <GenieChatbot
         open={genieOpen}
         onClose={() => setGenieOpen(false)}
         sidebarWidth={200}
-      />
+      /> */}
 
       {/* Main Content Area */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          pl: genieOpen ? "579px" : 3,
+          pl: openGenieOpen ? "579px" : 3,
           transition: "padding-left 0.2s ease",
           overflowX: "hidden",
           display: "flex",
@@ -166,7 +171,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
             mb: 2,
             borderBottom: "1px solid #E0E0E0",
             bgcolor: "#fff",
-            pl: genieOpen ? "64px" : { xs: 0, sm: "90px" },
+            pl: openGenieOpen ? "64px" : { xs: 0, sm: "90px" },
             minHeight: "70px",
           }}
         >
