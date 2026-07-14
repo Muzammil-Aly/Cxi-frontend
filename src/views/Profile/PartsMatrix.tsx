@@ -184,7 +184,11 @@ function LookupSearch({
           placeholder="Search across all sections — item number, SKU, model name, part number…"
           value={input}
           disabled={isFetching}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setInput(val);
+            if (val.trim() === "") setQuery("");
+          }}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           slotProps={{
             input: {
