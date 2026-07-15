@@ -57,7 +57,7 @@ export interface ShopifyOrder {
 export const shopifyApi = createApi({
   reducerPath: "shopifyApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["DraftOrder", "Product"],
+  tagTypes: ["DraftOrder", "Product", "Order"],
   endpoints: (builder) => ({
     getProducts: builder.query<ShopifyProduct[], ShopifyStore>({
       query: (store = "store1") => ({
@@ -132,6 +132,7 @@ export const shopifyApi = createApi({
           vendor,
         },
       }),
+      invalidatesTags: [{ type: "Order", id: "LIST" }],
     }),
     createDraftOrder: builder.mutation<
       any,
@@ -454,21 +455,23 @@ export const shopifyApi = createApi({
         orderId: string;
         store?: ShopifyStore;
         reason?: string;
-        refund?: boolean;
-        restock?: boolean;
+        staffNote?: string;
       }
     >({
       query: ({
         orderId,
         store = "store1",
         reason = "CUSTOMER",
-        refund = false,
-        restock = true,
+        staffNote,
       }) => ({
         url: `/shopify/order/${orderId}/cancel?store=${store}`,
         method: "POST",
-        body: { reason, refund, restock },
+        body: { reason, staffNote },
       }),
+      invalidatesTags: (result, error, { orderId }) => [
+        { type: "Order", id: "LIST" },
+        { type: "Order", id: orderId },
+      ],
     }),
 
     getOrderEditEligibility: builder.query<
@@ -485,10 +488,14 @@ export const shopifyApi = createApi({
           displayFulfillmentStatus: string;
         } | null;
       },
-      { orderId: string; store?: ShopifyStore }
+      {
+        orderId: string;
+        store?: ShopifyStore;
+        action?: "edited" | "cancelled";
+      }
     >({
-      query: ({ orderId, store = "store1" }) => ({
-        url: `/shopify/order/${orderId}/edit-eligibility?store=${store}`,
+      query: ({ orderId, store = "store1", action = "edited" }) => ({
+        url: `/shopify/order/${orderId}/edit-eligibility?store=${store}&action=${action}`,
         method: "GET",
       }),
       transformResponse: (response: any) => ({
@@ -497,6 +504,40 @@ export const shopifyApi = createApi({
         remainingMinutes: response.remainingMinutes ?? null,
         order: response.order ?? null,
       }),
+      providesTags: (result, error, { orderId }) => [
+        { type: "Order", id: orderId },
+      ],
+    }),
+
+    getOrderCancelEligibility: builder.query<
+      {
+        canCancel: boolean;
+        reason: string | null;
+        remainingMinutes: number | null;
+        orderId: string;
+        wismo: Array<{
+          order_status: string | null;
+          location_code: string | null;
+          Whse_Shipment_No: string | null;
+          WH_Status: string | null;
+        }>;
+      },
+      { orderId: string; store?: ShopifyStore }
+    >({
+      query: ({ orderId, store = "store1" }) => ({
+        url: `/shopify/order/${orderId}/cancel-eligibility?store=${store}`,
+        method: "GET",
+      }),
+      transformResponse: (response: any) => ({
+        canCancel: response.canCancel,
+        reason: response.reason ?? null,
+        remainingMinutes: response.remainingMinutes ?? null,
+        orderId: response.orderId,
+        wismo: response.wismo ?? [],
+      }),
+      providesTags: (result, error, { orderId }) => [
+        { type: "Order", id: orderId },
+      ],
     }),
 
     getShopifyOrders: builder.query<
@@ -512,6 +553,7 @@ export const shopifyApi = createApi({
         if (query) params.append("query", query);
         return { url: `/shopify/orders?${params}`, method: "GET" };
       },
+      providesTags: [{ type: "Order", id: "LIST" }],
     }),
 
     getShopifyDraftOrders: builder.query<
@@ -622,6 +664,7 @@ export const {
   useEditOrderMutation,
   useCancelOrderMutation,
   useGetOrderEditEligibilityQuery,
+  useGetOrderCancelEligibilityQuery,
   useGetShopifyOrdersQuery,
   useGetShopifyDraftOrdersQuery,
   useGetShopifyReturnReasonsQuery,
