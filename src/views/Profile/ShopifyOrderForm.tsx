@@ -4599,8 +4599,8 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
                     WISMO status:
                     {cancelEligibility.wismo.map((row, i) => (
                       <div key={i}>
-                        status: {row.order_status ?? "—"} · location:{" "}
-                        {row.location_code ?? "—"} · shipment:{" "}
+                        order status: {row.order_status ?? "—"} · location code:{" "}
+                        {row.location_code ?? "—"} · Whse Shipment No:{" "}
                         {row.Whse_Shipment_No ?? "—"} · WH status:{" "}
                         {row.WH_Status ?? "—"}
                       </div>
@@ -4654,8 +4654,8 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
                 >
                   {cancelEligibility.wismo.map((row, i) => (
                     <div key={i}>
-                      status: {row.order_status ?? "—"} · location:{" "}
-                      {row.location_code ?? "—"} · shipment:{" "}
+                      order status: {row.order_status ?? "—"} · location code:{" "}
+                      {row.location_code ?? "—"} · Whse Shipment No:{" "}
                       {row.Whse_Shipment_No ?? "—"} · WH status:{" "}
                       {row.WH_Status ?? "—"}
                     </div>
