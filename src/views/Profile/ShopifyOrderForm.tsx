@@ -1,5 +1,6 @@
 // src/components/ShopifyOrderForm.tsx
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import {
   useCreateOrderMutation,
@@ -260,6 +261,39 @@ const CANCEL_STORE_OPTIONS: {
     handle: "",
   },
 ];
+
+// Nested cancellation-reason picklist for the Internal Staff Note (per Diana Lee's list).
+// Selecting a category + reason auto-fills the note text; "Other" clears it for free typing.
+const CANCELLATION_CATEGORY_OTHER = "Other";
+const CANCELLATION_NOTE_OPTIONS: Record<string, string[]> = {
+  "Customer-Initiated": [
+    "Changed their mind / no longer wants the item",
+    "Found a better price elsewhere",
+    "Ordered by mistake (wrong item, size, color, quantity)",
+    "Duplicate order placed accidentally",
+    "Shipping time too long / needed sooner than ETA",
+    "Financial reasons (can no longer afford, budget change)",
+    "Gift no longer needed (recipient already received one, event cancelled)",
+    "Address error and unable to correct in time",
+  ],
+  "Company/Operations-Initiated": [
+    "Item out of stock / inventory discrepancy after order placed",
+    "Item discontinued or no longer available",
+    "Pricing error on the website",
+    "Fraud/risk flag on the order or payment",
+    "Address undeliverable or invalid (can't ship to location)",
+    "Backorder delay exceeding acceptable window",
+  ],
+  "System/Process-Related": [
+    "Duplicate order created by system/website glitch",
+    "Promo code or pricing conflict couldn't be honored",
+    "Manual cancellation due to unresolved customer service issue (e.g., customer requested change that required a cancel/reorder)",
+  ],
+  "External Factors": [
+    "Carrier/logistics disruption causing customer to cancel preemptively (Stuck Label create)",
+    "Weather or regional delivery restrictions",
+  ],
+};
 
 interface StoreOption {
   value: ShopifyStore;
@@ -548,6 +582,218 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           })}
         </div>
       )}
+    </div>
+  );
+};
+
+// ─── PortalDropdown ───────────────────────────────────────────────────────────
+// Same look as CustomDropdown, but the open list is rendered into document.body
+// via a portal and positioned with `fixed` coordinates measured from the trigger.
+// This keeps it from being clipped by an ancestor's overflow:hidden/auto (e.g. a
+// MUI Dialog), and it flips above the trigger when there isn't room below.
+
+interface PortalDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: CustomDropdownOption[];
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+const PortalDropdown: React.FC<PortalDropdownProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    openUpward: boolean;
+  } | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const estimatedHeight = Math.min(options.length * 40 + 12, 260);
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUpward =
+      spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+    setPos({
+      top: openUpward ? rect.top - 6 : rect.bottom + 6,
+      left: rect.left,
+      width: rect.width,
+      openUpward,
+    });
+  }, [open, options.length]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickAway = (e: MouseEvent) => {
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node) &&
+        popupRef.current &&
+        !popupRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    const handleReposition = (e: Event) => {
+      // Scrolling inside the popup's own option list shouldn't close it —
+      // only close on scrolling of the page/modal behind it.
+      if (
+        popupRef.current &&
+        e.target instanceof Node &&
+        popupRef.current.contains(e.target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickAway);
+    window.addEventListener("scroll", handleReposition, true);
+    window.addEventListener("resize", handleReposition);
+    return () => {
+      document.removeEventListener("mousedown", handleClickAway);
+      window.removeEventListener("scroll", handleReposition, true);
+      window.removeEventListener("resize", handleReposition);
+    };
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div style={{ position: "relative", userSelect: "none" }}>
+      <div
+        ref={triggerRef}
+        onClick={() => !disabled && setOpen((p) => !p)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 14px",
+          borderWidth: "1.5px",
+          borderStyle: "solid",
+          borderColor: open ? "#6366f1" : "#e5e7eb",
+          borderRadius: "8px",
+          fontSize: "14px",
+          cursor: disabled ? "not-allowed" : "pointer",
+          background: disabled ? "#f9fafb" : "#fff",
+          color: selected ? "#111827" : "#9ca3af",
+          opacity: disabled ? 0.6 : 1,
+          transition: "border-color 0.15s",
+        }}
+      >
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {selected?.label ?? placeholder ?? "— select —"}
+        </span>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#6b7280"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            flexShrink: 0,
+            marginLeft: "8px",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s",
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            ref={popupRef}
+            style={{
+              position: "fixed",
+              top: pos.openUpward ? undefined : pos.top,
+              bottom: pos.openUpward
+                ? window.innerHeight - pos.top
+                : undefined,
+              left: pos.left,
+              width: pos.width,
+              background: "#fff",
+              border: "1.5px solid #e5e7eb",
+              borderRadius: "12px",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+              zIndex: 2000,
+              overflowY: "auto",
+              maxHeight: "260px",
+              padding: "6px",
+            }}
+          >
+            {options.map((opt, i) => {
+              const isSelected = opt.value === value;
+              return (
+                <div
+                  key={`${opt.value}-${i}`}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    fontWeight: isSelected ? 600 : 400,
+                    color: isSelected ? "#16a34a" : "#6b7280",
+                    background: isSelected ? "#f0fdf4" : "transparent",
+                    transition: "background 0.12s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected)
+                      (e.currentTarget as HTMLDivElement).style.background =
+                        "#f9fafb";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.background =
+                      isSelected ? "#f0fdf4" : "transparent";
+                  }}
+                >
+                  <span>{opt.label}</span>
+                  {isSelected && (
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#16a34a"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
@@ -3602,6 +3848,8 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
   const [cancelReason, setCancelReason] = useState("CUSTOMER");
   const [cancelStaffNote, setCancelStaffNote] = useState("");
   const [cancelConfirmed, setCancelConfirmed] = useState(false);
+  const [cancelNoteCategory, setCancelNoteCategory] = useState("");
+  const [cancelNoteReason, setCancelNoteReason] = useState("");
 
   // Reset edit state when switching modes
   useEffect(() => {
@@ -3637,6 +3885,8 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
     setCancelReason("CUSTOMER");
     setCancelStaffNote("");
     setCancelConfirmed(false);
+    setCancelNoteCategory("");
+    setCancelNoteReason("");
     setSelectedStoreOption(null); // store label sets differ between cancel mode and the rest
     resetCancel();
     resetEditOrder();
@@ -4361,6 +4611,9 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
         staffNote: cancelStaffNote.trim() || undefined,
       }).unwrap();
       setCancelConfirmed(false);
+      setCancelStaffNote("");
+      setCancelNoteCategory("");
+      setCancelNoteReason("");
       toast.success("Order cancelled successfully!");
     } catch (err) {
       console.error(err);
@@ -7059,13 +7312,83 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
                   (optional)
                 </span>
               </label>
-              <textarea
-                style={{ ...inputStyle, minHeight: "72px", resize: "vertical" }}
-                placeholder="Internal note for this cancellation..."
-                value={cancelStaffNote}
-                onChange={(e) => setCancelStaffNote(e.target.value)}
-                disabled={activeEligibility?.canEdit === false}
-              />
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                  marginBottom: "10px",
+                }}
+              >
+                <PortalDropdown
+                  value={cancelNoteCategory}
+                  placeholder="— Select category —"
+                  onChange={(category) => {
+                    setCancelNoteCategory(category);
+                    setCancelNoteReason("");
+                    setCancelStaffNote("");
+                  }}
+                  options={[
+                    ...Object.keys(CANCELLATION_NOTE_OPTIONS).map(
+                      (category) => ({ value: category, label: category }),
+                    ),
+                    {
+                      value: CANCELLATION_CATEGORY_OTHER,
+                      label: CANCELLATION_CATEGORY_OTHER,
+                    },
+                  ]}
+                />
+
+                {cancelNoteCategory &&
+                cancelNoteCategory !== CANCELLATION_CATEGORY_OTHER ? (
+                  <PortalDropdown
+                    value={cancelNoteReason}
+                    placeholder="— Select reason —"
+                    onChange={(reason) => {
+                      setCancelNoteReason(reason);
+                      if (reason) {
+                        setCancelStaffNote(`${cancelNoteCategory}: ${reason}`);
+                      }
+                    }}
+                    options={(CANCELLATION_NOTE_OPTIONS[cancelNoteCategory] ?? []).map(
+                      (reason) => ({ value: reason, label: reason }),
+                    )}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "10px 14px",
+                      borderWidth: "1.5px",
+                      borderStyle: "solid",
+                      borderColor: "#e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      background: "#f9fafb",
+                      color: "#9ca3af",
+                    }}
+                  >
+                    — Select reason —
+                  </div>
+                )}
+              </div>
+
+              {cancelNoteCategory === CANCELLATION_CATEGORY_OTHER && (
+                <textarea
+                  style={{
+                    ...inputStyle,
+                    minHeight: "72px",
+                    resize: "vertical",
+                  }}
+                  placeholder="Internal note for this cancellation..."
+                  value={cancelStaffNote}
+                  onChange={(e) => setCancelStaffNote(e.target.value)}
+                  disabled={activeEligibility?.canEdit === false}
+                  autoFocus
+                />
+              )}
             </div>
 
             {/* Confirmation checkbox */}
