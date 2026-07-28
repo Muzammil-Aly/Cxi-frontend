@@ -222,6 +222,45 @@ const STORE_OPTIONS: {
   },
 ];
 
+// Cancellation module uses its own 5 Shopify stores, independent of STORE_OPTIONS above.
+const CANCEL_STORE_OPTIONS: {
+  value: ShopifyStore;
+  label: string;
+  tag: string;
+  handle: string;
+}[] = [
+  {
+    value: "store1",
+    label: "Million Dollar Baby Co",
+    tag: "Million Dollar Baby Co",
+    handle: "",
+  },
+  {
+    value: "store2",
+    label: "Babyletto",
+    tag: "Babyletto",
+    handle: "",
+  },
+  {
+    value: "store3",
+    label: "Namesake",
+    tag: "Namesake",
+    handle: "",
+  },
+  {
+    value: "store4",
+    label: "DaVinci",
+    tag: "DaVinci",
+    handle: "",
+  },
+  {
+    value: "store5",
+    label: "Nursery Works",
+    tag: "Nursery Works",
+    handle: "",
+  },
+];
+
 interface StoreOption {
   value: ShopifyStore;
   label: string;
@@ -3201,11 +3240,19 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
   };
 
   const {
-    data: editShopifyOrdersData,
+    // `currentData` (unlike `data`) is undefined whenever the query args
+    // (e.g. selectedStore) have changed and the new result hasn't arrived
+    // yet — `data` keeps showing the previous store's results until then.
+    currentData: editShopifyOrdersData,
     isFetching: isEditOrderSearching,
     isError: isEditOrdersError,
   } = useGetShopifyOrdersQuery(
-    { store: selectedStore!, limit: 50, query: editSearchFilter },
+    {
+      store: selectedStore!,
+      limit: 50,
+      query: editSearchFilter,
+      forCancellation: mode === "cancelOrder",
+    },
     {
       skip: !selectedStore || (mode !== "editOrder" && mode !== "cancelOrder"),
     },
@@ -3590,6 +3637,7 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
     setCancelReason("CUSTOMER");
     setCancelStaffNote("");
     setCancelConfirmed(false);
+    setSelectedStoreOption(null); // store label sets differ between cancel mode and the rest
     resetCancel();
     resetEditOrder();
   }, [mode]); // Reset all form state when store changes
@@ -4400,7 +4448,7 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
           marginBottom: "24px",
         }}
       >
-        <div style={fieldWrap}>
+        <div style={{ ...fieldWrap, order: isCancelMode ? 2 : 1 }}>
           <label style={labelStyle}>Order ID *</label>
           <>
             <Autocomplete
@@ -4542,12 +4590,12 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
             </span>
           </>
         </div>
-        <div style={fieldWrap}>
+        <div style={{ ...fieldWrap, order: isCancelMode ? 1 : 2 }}>
           <label style={labelStyle}>Store *</label>
           <StoreDropdown
             selectedLabel={selectedStoreOption?.label ?? ""}
             onChange={(opt) => setSelectedStoreOption(opt)}
-            options={STORE_OPTIONS}
+            options={isCancelMode ? CANCEL_STORE_OPTIONS : STORE_OPTIONS}
           />
         </div>
       </div>

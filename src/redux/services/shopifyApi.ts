@@ -546,11 +546,17 @@ export const shopifyApi = createApi({
         has_next_page: boolean;
         end_cursor: string | null;
       },
-      { store?: ShopifyStore; limit?: number; query?: string }
+      {
+        store?: ShopifyStore;
+        limit?: number;
+        query?: string;
+        forCancellation?: boolean;
+      }
     >({
-      query: ({ store = "store1", limit = 50, query }) => {
+      query: ({ store = "store1", limit = 50, query, forCancellation }) => {
         const params = new URLSearchParams({ store, limit: String(limit) });
         if (query) params.append("query", query);
+        if (forCancellation) params.append("forCancellation", "true");
         return { url: `/shopify/orders?${params}`, method: "GET" };
       },
       providesTags: [{ type: "Order", id: "LIST" }],
