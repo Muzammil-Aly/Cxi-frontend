@@ -209,7 +209,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
         </Box>
 
         {/* Dynamic Page Content */}
-        <Box sx={{ flexGrow: 1, overflowY: "auto" }}>{children}</Box>
+        <Box sx={{ flexGrow: 1, minHeight: 0, overflowY: "auto" }}>{children}</Box>
       </Box>
     </Box>
   );
