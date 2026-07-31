@@ -525,6 +525,19 @@ export const inventoryApi = createApi({
       },
     }),
 
+    getDistinctAllItems: builder.query<
+      any,
+      { item_no?: string; page?: number; page_size?: number }
+    >({
+      query: ({ item_no, page = 1, page_size = 100 } = {}) => {
+        const params = new URLSearchParams();
+        params.set("page", page.toString());
+        params.set("page_size", page_size.toString());
+        if (item_no) params.set("item_no", item_no);
+        return `all_items/distinct_items?${params.toString()}`;
+      },
+    }),
+
     getLifeCycleStatus: builder.query<any, string | void>({
       query: (name = "") => ({
         url: "/inventory/life_cycle_status",
@@ -550,6 +563,7 @@ export const {
   useGetTouchupPensQuery,
   useGetDistinctTouchupPensQuery,
   useGetDistinctTouchupItemsQuery,
+  useGetDistinctAllItemsQuery,
   useGetLifeCycleStatusQuery,
   useGetNavETAQuery,
   useGetItemTrackingCommentsQuery,

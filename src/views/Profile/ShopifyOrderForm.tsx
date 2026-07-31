@@ -29,6 +29,7 @@ import {
   useGetTouchupsQuery,
   useGetTouchupPensQuery,
   useGetDistinctTouchupPensQuery,
+  useGetDistinctAllItemsQuery,
 } from "../../redux/services/InventoryApi";
 import { Autocomplete, CircularProgress, TextField } from "@mui/material";
 
@@ -1738,6 +1739,10 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
   const [customSkuTerm, setCustomSkuTerm] = useState("");
   const [debouncedSku, setDebouncedSku] = useState("");
 
+  const [allItemsSearchEnabled, setAllItemsSearchEnabled] = useState(false);
+  const [allItemsSearchTerm, setAllItemsSearchTerm] = useState("");
+  const [debouncedAllItemsSearch, setDebouncedAllItemsSearch] = useState("");
+
   const [touchupPenSearchEnabled, setTouchupPenSearchEnabled] = useState(false);
   const [touchupPenSearchTerm, setTouchupPenSearchTerm] = useState("");
   const [debouncedTouchupPenSearch, setDebouncedTouchupPenSearch] =
@@ -1747,6 +1752,14 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
     const t = setTimeout(() => setDebouncedSku(customSkuTerm.trim()), 400);
     return () => clearTimeout(t);
   }, [customSkuTerm]);
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setDebouncedAllItemsSearch(allItemsSearchTerm.trim()),
+      400,
+    );
+    return () => clearTimeout(t);
+  }, [allItemsSearchTerm]);
 
   useEffect(() => {
     const t = setTimeout(
@@ -1760,6 +1773,12 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
     useGetDistinctTouchupItemsQuery(
       { parts_item_no: `like:${debouncedSku}`, page_size: 100 },
       { skip: !customAddEnabled || debouncedSku.length < 2 },
+    );
+
+  const { data: allItemsData, isFetching: isAllItemsFetching } =
+    useGetDistinctAllItemsQuery(
+      { item_no: `like:${debouncedAllItemsSearch}`, page_size: 100 },
+      { skip: !allItemsSearchEnabled || debouncedAllItemsSearch.length < 2 },
     );
 
   const { data: touchupPenData, isFetching: isTouchupPenFetching } =
@@ -1818,6 +1837,53 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
     setTouchupPenSearchEnabled(false);
     setTouchupPenSearchTerm("");
     setDebouncedTouchupPenSearch("");
+  };
+
+  const isAllItemsTyping =
+    allItemsSearchTerm.trim().length >= 2 &&
+    allItemsSearchTerm.trim() !== debouncedAllItemsSearch;
+  const showAllItemsLoader = isAllItemsTyping || isAllItemsFetching;
+
+  const allItemsOptions: {
+    value: string;
+    label: string;
+    price: number | null;
+    potential_qty_available: number | null;
+    earliest_avail_date: string | null;
+  }[] = (allItemsData?.data ?? []).map((p: any) => ({
+    value: p.item_no,
+    label: p.item_no,
+    price: p.unit_price != null ? Number(p.unit_price) : null,
+    potential_qty_available:
+      p.potential_qty_available != null
+        ? Number(p.potential_qty_available)
+        : null,
+    earliest_avail_date: p.earliest_avail_date ?? null,
+  }));
+
+  const handleAllItemsSelect = (index: number) => {
+    const found = allItemsData?.data?.[index];
+    if (!found) return;
+    const val = found.item_no as string;
+    const price = found?.unit_price != null ? Number(found.unit_price) : null;
+    const potential_qty_available =
+      found?.potential_qty_available != null
+        ? Number(found.potential_qty_available)
+        : null;
+    const earliest_avail_date = found?.earliest_avail_date ?? null;
+    onChange([
+      ...parts,
+      {
+        parts_item_no: val,
+        parts_qty: 1,
+        parts_unit_price: price,
+        potential_qty_available,
+        earliest_avail_date,
+      },
+    ]);
+    setAllItemsSearchEnabled(false);
+    setAllItemsSearchTerm("");
+    setDebouncedAllItemsSearch("");
   };
 
   const isCustomTyping =
@@ -2509,6 +2575,160 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
                           }}
                         >
                           <span>Lot: {opt.lot_no ?? "—"}</span>
+                          <span>
+                            QTY Available: {opt.potential_qty_available ?? "—"}
+                          </span>
+                          {opt.price != null && (
+                            <span style={{ color: "#059669", fontWeight: 600 }}>
+                              ${opt.price.toFixed(2)}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* All Items search */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "7px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#6366f1",
+                userSelect: "none",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={allItemsSearchEnabled}
+                onChange={(e) => {
+                  setAllItemsSearchEnabled(e.target.checked);
+                  if (!e.target.checked) {
+                    setAllItemsSearchTerm("");
+                    setDebouncedAllItemsSearch("");
+                  }
+                }}
+                style={{
+                  accentColor: "#6366f1",
+                  width: "14px",
+                  height: "14px",
+                }}
+              />
+              Search & add part by all item no
+            </label>
+
+            {allItemsSearchEnabled && (
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+              >
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    value={allItemsSearchTerm}
+                    onChange={(e) => setAllItemsSearchTerm(e.target.value)}
+                    placeholder="Type item no to search…"
+                    autoFocus
+                    style={{
+                      width: "100%",
+                      padding: "7px 10px",
+                      border: "1.5px solid #a5b4fc",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      background: "#fff",
+                      color: "#111827",
+                      boxSizing: "border-box",
+                      outline: "none",
+                    }}
+                  />
+                  {showAllItemsLoader && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontSize: "11px",
+                        color: "#9ca3af",
+                      }}
+                    >
+                      Searching...
+                    </span>
+                  )}
+                </div>
+
+                {debouncedAllItemsSearch.length >= 2 &&
+                  !showAllItemsLoader &&
+                  allItemsOptions.length === 0 && (
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#9ca3af",
+                        paddingLeft: "4px",
+                      }}
+                    >
+                      No items found for "{debouncedAllItemsSearch}".
+                    </div>
+                  )}
+
+                {allItemsOptions.length > 0 && (
+                  <div
+                    style={{
+                      border: "1px solid #ddd6fe",
+                      borderRadius: "8px",
+                      background: "#fff",
+                      overflow: "hidden",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    {allItemsOptions.map((opt, i) => (
+                      <button
+                        key={`${opt.value}-${i}`}
+                        type="button"
+                        onClick={() => handleAllItemsSelect(i)}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          width: "100%",
+                          padding: "8px 12px",
+                          background: "none",
+                          border: "none",
+                          borderBottom: "1px solid #f3f4f6",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          color: "#111827",
+                          textAlign: "left",
+                          gap: "3px",
+                        }}
+                        onMouseEnter={(e) =>
+                          ((
+                            e.currentTarget as HTMLButtonElement
+                          ).style.background = "#f5f3ff")
+                        }
+                        onMouseLeave={(e) =>
+                          ((
+                            e.currentTarget as HTMLButtonElement
+                          ).style.background = "none")
+                        }
+                      >
+                        <span style={{ fontWeight: 600 }}>{opt.label}</span>
+                        <span
+                          style={{
+                            display: "flex",
+                            gap: "12px",
+                            fontSize: "11px",
+                            color: "#6b7280",
+                          }}
+                        >
                           <span>
                             QTY Available: {opt.potential_qty_available ?? "—"}
                           </span>
