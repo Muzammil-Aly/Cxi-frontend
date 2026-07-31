@@ -1,5 +1,11 @@
 // src/components/ShopifyOrderForm.tsx
-import React, { useMemo, useRef, useState, useEffect, useLayoutEffect } from "react";
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import {
@@ -727,9 +733,7 @@ const PortalDropdown: React.FC<PortalDropdownProps> = ({
             style={{
               position: "fixed",
               top: pos.openUpward ? undefined : pos.top,
-              bottom: pos.openUpward
-                ? window.innerHeight - pos.top
-                : undefined,
+              bottom: pos.openUpward ? window.innerHeight - pos.top : undefined,
               left: pos.left,
               width: pos.width,
               background: "#fff",
@@ -1720,6 +1724,18 @@ interface PartsSubSectionProps {
   reasonCodeOptions: { value: string; label: string }[];
 }
 
+const ALL_ITEMS_SEARCH_ALLOWED_USER_IDS = [
+  "mdb15",
+  "mdb28",
+  "mdb13",
+  "mdb4",
+  "mdb23",
+  "mdb30",
+  "mdb5",
+  "mdb6",
+  "kav1",
+];
+
 const EMPTY_PART = (): PartRow => ({
   parts_item_no: "",
   parts_qty: 1,
@@ -1742,6 +1758,15 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
   const [allItemsSearchEnabled, setAllItemsSearchEnabled] = useState(false);
   const [allItemsSearchTerm, setAllItemsSearchTerm] = useState("");
   const [debouncedAllItemsSearch, setDebouncedAllItemsSearch] = useState("");
+  const [allItemsUserId, setAllItemsUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAllItemsUserId(localStorage.getItem("userId"));
+  }, []);
+
+  const canSearchAllItems =
+    !!allItemsUserId &&
+    ALL_ITEMS_SEARCH_ALLOWED_USER_IDS.includes(allItemsUserId);
 
   const [touchupPenSearchEnabled, setTouchupPenSearchEnabled] = useState(false);
   const [touchupPenSearchTerm, setTouchupPenSearchTerm] = useState("");
@@ -2593,158 +2618,169 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
           </div>
 
           {/* All Items search */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "7px",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: "#6366f1",
-                userSelect: "none",
-              }}
+          {canSearchAllItems && (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
             >
-              <input
-                type="checkbox"
-                checked={allItemsSearchEnabled}
-                onChange={(e) => {
-                  setAllItemsSearchEnabled(e.target.checked);
-                  if (!e.target.checked) {
-                    setAllItemsSearchTerm("");
-                    setDebouncedAllItemsSearch("");
-                  }
-                }}
+              <label
                 style={{
-                  accentColor: "#6366f1",
-                  width: "14px",
-                  height: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "#6366f1",
+                  userSelect: "none",
                 }}
-              />
-              Search & add part by all item no
-            </label>
-
-            {allItemsSearchEnabled && (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "6px" }}
               >
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="text"
-                    value={allItemsSearchTerm}
-                    onChange={(e) => setAllItemsSearchTerm(e.target.value)}
-                    placeholder="Type item no to search…"
-                    autoFocus
-                    style={{
-                      width: "100%",
-                      padding: "7px 10px",
-                      border: "1.5px solid #a5b4fc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      background: "#fff",
-                      color: "#111827",
-                      boxSizing: "border-box",
-                      outline: "none",
-                    }}
-                  />
-                  {showAllItemsLoader && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        right: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        fontSize: "11px",
-                        color: "#9ca3af",
-                      }}
-                    >
-                      Searching...
-                    </span>
-                  )}
-                </div>
+                <input
+                  type="checkbox"
+                  checked={allItemsSearchEnabled}
+                  onChange={(e) => {
+                    setAllItemsSearchEnabled(e.target.checked);
+                    if (!e.target.checked) {
+                      setAllItemsSearchTerm("");
+                      setDebouncedAllItemsSearch("");
+                    }
+                  }}
+                  style={{
+                    accentColor: "#6366f1",
+                    width: "14px",
+                    height: "14px",
+                  }}
+                />
+                Search & add part by all item no
+              </label>
 
-                {debouncedAllItemsSearch.length >= 2 &&
-                  !showAllItemsLoader &&
-                  allItemsOptions.length === 0 && (
+              {allItemsSearchEnabled && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                  }}
+                >
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="text"
+                      value={allItemsSearchTerm}
+                      onChange={(e) => setAllItemsSearchTerm(e.target.value)}
+                      placeholder="Type item no to search…"
+                      autoFocus
+                      style={{
+                        width: "100%",
+                        padding: "7px 10px",
+                        border: "1.5px solid #a5b4fc",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        background: "#fff",
+                        color: "#111827",
+                        boxSizing: "border-box",
+                        outline: "none",
+                      }}
+                    />
+                    {showAllItemsLoader && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          right: "10px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          fontSize: "11px",
+                          color: "#9ca3af",
+                        }}
+                      >
+                        Searching...
+                      </span>
+                    )}
+                  </div>
+
+                  {debouncedAllItemsSearch.length >= 2 &&
+                    !showAllItemsLoader &&
+                    allItemsOptions.length === 0 && (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#9ca3af",
+                          paddingLeft: "4px",
+                        }}
+                      >
+                        No items found for "{debouncedAllItemsSearch}".
+                      </div>
+                    )}
+
+                  {allItemsOptions.length > 0 && (
                     <div
                       style={{
-                        fontSize: "12px",
-                        color: "#9ca3af",
-                        paddingLeft: "4px",
+                        border: "1px solid #ddd6fe",
+                        borderRadius: "8px",
+                        background: "#fff",
+                        overflow: "hidden",
+                        maxHeight: "200px",
+                        overflowY: "auto",
                       }}
                     >
-                      No items found for "{debouncedAllItemsSearch}".
-                    </div>
-                  )}
-
-                {allItemsOptions.length > 0 && (
-                  <div
-                    style={{
-                      border: "1px solid #ddd6fe",
-                      borderRadius: "8px",
-                      background: "#fff",
-                      overflow: "hidden",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                    }}
-                  >
-                    {allItemsOptions.map((opt, i) => (
-                      <button
-                        key={`${opt.value}-${i}`}
-                        type="button"
-                        onClick={() => handleAllItemsSelect(i)}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          width: "100%",
-                          padding: "8px 12px",
-                          background: "none",
-                          border: "none",
-                          borderBottom: "1px solid #f3f4f6",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                          color: "#111827",
-                          textAlign: "left",
-                          gap: "3px",
-                        }}
-                        onMouseEnter={(e) =>
-                          ((
-                            e.currentTarget as HTMLButtonElement
-                          ).style.background = "#f5f3ff")
-                        }
-                        onMouseLeave={(e) =>
-                          ((
-                            e.currentTarget as HTMLButtonElement
-                          ).style.background = "none")
-                        }
-                      >
-                        <span style={{ fontWeight: 600 }}>{opt.label}</span>
-                        <span
+                      {allItemsOptions.map((opt, i) => (
+                        <button
+                          key={`${opt.value}-${i}`}
+                          type="button"
+                          onClick={() => handleAllItemsSelect(i)}
                           style={{
                             display: "flex",
-                            gap: "12px",
-                            fontSize: "11px",
-                            color: "#6b7280",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                            width: "100%",
+                            padding: "8px 12px",
+                            background: "none",
+                            border: "none",
+                            borderBottom: "1px solid #f3f4f6",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            color: "#111827",
+                            textAlign: "left",
+                            gap: "3px",
                           }}
+                          onMouseEnter={(e) =>
+                            ((
+                              e.currentTarget as HTMLButtonElement
+                            ).style.background = "#f5f3ff")
+                          }
+                          onMouseLeave={(e) =>
+                            ((
+                              e.currentTarget as HTMLButtonElement
+                            ).style.background = "none")
+                          }
                         >
-                          <span>
-                            QTY Available: {opt.potential_qty_available ?? "—"}
-                          </span>
-                          {opt.price != null && (
-                            <span style={{ color: "#059669", fontWeight: 600 }}>
-                              ${opt.price.toFixed(2)}
+                          <span style={{ fontWeight: 600 }}>{opt.label}</span>
+                          <span
+                            style={{
+                              display: "flex",
+                              gap: "12px",
+                              fontSize: "11px",
+                              color: "#6b7280",
+                            }}
+                          >
+                            <span>
+                              QTY Available:{" "}
+                              {opt.potential_qty_available ?? "—"}
                             </span>
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                            {opt.price != null && (
+                              <span
+                                style={{ color: "#059669", fontWeight: 600 }}
+                              >
+                                ${opt.price.toFixed(2)}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Touchup Pen SKU search */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -5109,7 +5145,8 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
             >
               <div>{activeEligibility.reason}</div>
               {isCancelMode &&
-                (cancelEligibility?.wismo && cancelEligibility.wismo.length > 0 ? (
+                (cancelEligibility?.wismo &&
+                cancelEligibility.wismo.length > 0 ? (
                   <div
                     style={{
                       marginTop: "6px",
@@ -7571,9 +7608,9 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
                         setCancelStaffNote(`${cancelNoteCategory}: ${reason}`);
                       }
                     }}
-                    options={(CANCELLATION_NOTE_OPTIONS[cancelNoteCategory] ?? []).map(
-                      (reason) => ({ value: reason, label: reason }),
-                    )}
+                    options={(
+                      CANCELLATION_NOTE_OPTIONS[cancelNoteCategory] ?? []
+                    ).map((reason) => ({ value: reason, label: reason }))}
                   />
                 ) : (
                   <div
