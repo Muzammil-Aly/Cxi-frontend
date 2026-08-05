@@ -2343,7 +2343,7 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
                     <input
                       type="number"
                       min={1}
-                      max={5}
+                      max={6}
                       value={row.parts_qty}
                       onKeyDown={(e) => {
                         if (/^[0-9]$/.test(e.key))
@@ -2353,7 +2353,7 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
                         const v = parseInt(e.target.value, 10);
                         if (isNaN(v)) return;
                         updateRow(i, {
-                          parts_qty: Math.min(5, Math.max(1, v)),
+                          parts_qty: Math.min(6, Math.max(1, v)),
                         });
                       }}
                       style={fieldStyle}
@@ -2653,7 +2653,7 @@ const PartsSubSection: React.FC<PartsSubSectionProps> = ({
                     height: "14px",
                   }}
                 />
-                Search & add part by all item no
+                Search & add part by Loose Hardware
               </label>
 
               {allItemsSearchEnabled && (
@@ -6182,7 +6182,7 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
                     <input
                       type="number"
                       min={1}
-                      max={5}
+                      max={6}
                       value={item.quantity}
                       disabled={washWholeUnit}
                       onKeyDown={(e) => {
@@ -6192,7 +6192,7 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
                       onChange={(e) => {
                         const parsed = parseInt(e.target.value, 10);
                         if (isNaN(parsed)) return;
-                        const clamped = Math.min(5, Math.max(1, parsed));
+                        const clamped = Math.min(6, Math.max(1, parsed));
                         handleLineItemChange(index, "quantity", clamped);
                       }}
                       required
