@@ -1357,7 +1357,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                   userId === "mdb1" ||
                   userId === "mdb20" ||
                   userId === "mdb15" ||
-                  userId === "mdb4") && (
+                  userId === "mdb4" ||
+                  userId === "mdb7") && (
                   <Button
                     variant="contained"
                     startIcon={<Add />}
