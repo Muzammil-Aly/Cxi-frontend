@@ -1648,7 +1648,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                 userId === "mdb20" ||
                 userId === "mdb15" ||
                 userId === "mdb14" ||
-                userId === "mdb4") && (
+                userId === "mdb4" ||
+                userId === "mdb7") && (
                 <>
                   <Dialog
                     open={openCreateOrder}
