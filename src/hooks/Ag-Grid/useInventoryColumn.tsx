@@ -148,6 +148,14 @@ const useInventory = (columns: Column[]) => {
             minWidth: 150,
             cellStyle: { fontSize: "16px" },
           };
+        case "forecasted_landed_cost":
+          return {
+            ...col,
+            headerName: "Forecasted Landed Cost",
+            flex: 1,
+            minWidth: 220,
+            cellStyle: { fontSize: "16px" },
+          };
         default:
           return col;
       }

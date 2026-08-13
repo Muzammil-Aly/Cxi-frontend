@@ -144,6 +144,7 @@ const Inventory = () => {
           current_vendor: item.current_vendor,
           description_2: item.description_2,
           brand: item.brand,
+          forecasted_landed_cost: item.forecasted_landed_cost,
         }))
       : [];
   }, [data]);
@@ -401,7 +402,11 @@ const Inventory = () => {
   // Apply column customization
   const tiCol = useInventoryColumn(filteredColumns);
   const handleExport = () => {
-    exportToExcel({ data: rowData, columns: tiCol, fileName: "Inventory.xlsx" });
+    exportToExcel({
+      data: rowData,
+      columns: tiCol,
+      fileName: "Inventory.xlsx",
+    });
   };
 
   const handleSelectOrderItem = (item: any) => {

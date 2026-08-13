@@ -1461,6 +1461,13 @@ export const inventory_columns = (
     flex: 1,
     minWidth: 150,
   },
+  {
+    field: "forecasted_landed_cost",
+    headerName: "Forecasted Landed Cost",
+    cellRenderer: CopyCellRenderer,
+    flex: 1,
+    minWidth: 220,
+  },
 ];
 
 export const sales_orders = [
