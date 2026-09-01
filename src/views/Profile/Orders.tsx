@@ -1358,7 +1358,32 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                   userId === "mdb20" ||
                   userId === "mdb15" ||
                   userId === "mdb4" ||
-                  userId === "mdb7") && (
+                  userId === "mdb7" ||
+                  userId === "mdb25" ||
+                  userId === "mdb31" ||
+                  userId === "mdb10" ||
+                  userId === "mdb11" ||
+                  userId === "mdb12" ||
+                  userId === "mdb34" ||
+                  userId === "mdb35" ||
+                  userId === "mdb33" ||
+                  userId === "mdb36" ||
+                  userId === "mdb40" ||
+                  userId === "mdb22" ||
+                  userId === "mdb37" ||
+                  userId === "mdb13" ||
+                  userId === "mdb2" ||
+                  userId === "mdb14" ||
+                  userId === "mdb18" ||
+                  userId === "mdb30" ||
+                  userId === "mdb23" ||
+                  userId === "mdb27" ||
+                  userId === "mdb28" ||
+                  userId === "mdb32" ||
+                  userId === "mdb6" ||
+                  userId === "mdb5" ||
+                  userId === "mdb9" ||
+                  userId === "mdb8") && (
                   <Button
                     variant="contained"
                     startIcon={<Add />}
@@ -1650,7 +1675,31 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                 userId === "mdb15" ||
                 userId === "mdb14" ||
                 userId === "mdb4" ||
-                userId === "mdb7") && (
+                userId === "mdb7" ||
+                userId === "mdb25" ||
+                userId === "mdb31" ||
+                userId === "mdb10" ||
+                userId === "mdb11" ||
+                userId === "mdb12" ||
+                userId === "mdb34" ||
+                userId === "mdb35" ||
+                userId === "mdb33" ||
+                userId === "mdb36" ||
+                userId === "mdb40" ||
+                userId === "mdb22" ||
+                userId === "mdb37" ||
+                userId === "mdb13" ||
+                userId === "mdb2" ||
+                userId === "mdb18" ||
+                userId === "mdb30" ||
+                userId === "mdb23" ||
+                userId === "mdb27" ||
+                userId === "mdb28" ||
+                userId === "mdb32" ||
+                userId === "mdb6" ||
+                userId === "mdb5" ||
+                userId === "mdb9" ||
+                userId === "mdb8") && (
                 <>
                   <Dialog
                     open={openCreateOrder}

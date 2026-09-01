@@ -1737,6 +1737,11 @@ const ALL_ITEMS_SEARCH_ALLOWED_USER_IDS = [
   "mdb32",
   "mdb14",
   "mdb18",
+  "mdb2",
+  "mdb27",
+  "mdb7",
+  "mdb9",
+  "mdb8",
 ];
 
 const EMPTY_PART = (): PartRow => ({
