@@ -52,6 +52,13 @@ const useSalesOrders = (columns: Column[]) => {
             flex: 1,
             minWidth: 180,
           };
+        case "external_document_no":
+          return {
+            ...col,
+            headerName: "External Document No",
+            flex: 1,
+            minWidth: 200,
+          };
         default:
           return col;
       }

@@ -82,7 +82,11 @@ const InventorySOTable: React.FC<InventorySOTableProps> = ({
   });
   const tiCol = useSalesOrders(filteredColumns);
   const handleExport = () => {
-    exportToExcel({ data: rowData, columns: tiCol, fileName: "Inventory_SO.xlsx" });
+    exportToExcel({
+      data: rowData,
+      columns: tiCol,
+      fileName: "Inventory_SO.xlsx",
+    });
   };
 
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -127,6 +131,7 @@ const InventorySOTable: React.FC<InventorySOTableProps> = ({
           qty: item.qty ?? "-",
           item_no: item.item_no ?? "-",
           location_code: item.location_code ?? "-",
+          external_document_no: item.external_document_no ?? "-",
         }))
       : [];
   }, [data]);

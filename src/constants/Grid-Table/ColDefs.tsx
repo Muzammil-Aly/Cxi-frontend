@@ -1513,6 +1513,11 @@ export const sales_orders = [
     flex: 1,
     minWidth: 150,
   },
+  {
+    field: "external_document_no",
+    headerName: "External Document No",
+    cellRenderer: CopyCellRenderer,
+  },
 ];
 export const purchase_orders = [
   {
