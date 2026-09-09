@@ -5423,7 +5423,28 @@ const ShopifyOrderForm: React.FC<ShopifyOrderFormProps> = ({ onClose }) => {
           CREATE ORDER MODE
       ════════════════════════════════════════════════ */}
       {mode === "create" && (
-        <form onSubmit={handleSubmit} style={{ padding: "28px" }}>
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const target = e.target as HTMLElement;
+            // Let textareas keep their normal newline-on-Enter behavior.
+            if (target.tagName === "TEXTAREA") return;
+            // Never let Enter submit the form — only the explicit button click should.
+            e.preventDefault();
+            const form = e.currentTarget;
+            const focusable = Array.from(
+              form.querySelectorAll<HTMLElement>(
+                'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+              )
+            ).filter((el) => el.offsetParent !== null);
+            const currentIndex = focusable.indexOf(target);
+            if (currentIndex > -1 && currentIndex < focusable.length - 1) {
+              focusable[currentIndex + 1].focus();
+            }
+          }}
+          style={{ padding: "28px" }}
+        >
           {/* Order Search */}
           <div style={{ marginBottom: "24px" }} ref={orderSearchRef}>
             <label style={labelStyle}>Import from Existing Order</label>

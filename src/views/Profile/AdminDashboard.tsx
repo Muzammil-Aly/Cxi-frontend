@@ -284,7 +284,11 @@ const StatsCards = ({
 );
 
 // ── Main Component ──
-const AdminDashboard = () => {
+interface AdminDashboardProps {
+  headerActions?: React.ReactNode;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ headerActions }) => {
   // Date filter
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
@@ -546,16 +550,19 @@ const AdminDashboard = () => {
           </Box>
         </Box>
 
-        <Box sx={{ width: 280 }}>
-          <CustomDateRangePicker
-            startDate={startDate}
-            endDate={endDate}
-            setStartDate={setStartDate}
-            setEndDate={setEndDate}
-            setFilter={setDateFilter}
-            setPage={handleDatePageReset}
-            width={280}
-          />
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+          {headerActions}
+          <Box sx={{ width: 280 }}>
+            <CustomDateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
+              setFilter={setDateFilter}
+              setPage={handleDatePageReset}
+              width={280}
+            />
+          </Box>
         </Box>
       </Box>
 

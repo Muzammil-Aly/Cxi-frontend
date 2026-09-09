@@ -54,6 +54,31 @@ export interface ShopifyOrder {
   shippingAddress: ShopifyOrderAddress | null;
 }
 
+export interface OrderHistoryRow {
+  id: string;
+  action: string;
+  store: string;
+  shopify_order_id: string | null;
+  shopify_order_name: string | null;
+  user_id: string;
+  user_email: string | null;
+  reason: string | null;
+  request_payload: any;
+  result_payload: any;
+  created_at: string;
+}
+
+export interface OrderHistoryResponse {
+  status: number;
+  data: {
+    history: OrderHistoryRow[];
+    total: number;
+    page: number;
+    page_size: number;
+  };
+  message: string;
+}
+
 export const shopifyApi = createApi({
   reducerPath: "shopifyApi",
   baseQuery: baseQueryWithReauth,
@@ -562,6 +587,33 @@ export const shopifyApi = createApi({
       providesTags: [{ type: "Order", id: "LIST" }],
     }),
 
+    getOrderHistory: builder.query<
+      OrderHistoryResponse,
+      {
+        order_id?: string;
+        user_id?: string;
+        user_email?: string;
+        action?: string;
+        store?: ShopifyStore;
+        vendor?: string;
+        date_from?: string;
+        date_to?: string;
+        page?: number;
+        page_size?: number;
+      }
+    >({
+      query: (params) => {
+        const usp = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            usp.append(key, String(value));
+          }
+        });
+        return { url: `/shopify/order-history?${usp.toString()}`, method: "GET" };
+      },
+      providesTags: [{ type: "Order", id: "HISTORY" }],
+    }),
+
     getShopifyDraftOrders: builder.query<
       {
         data: ShopifyOrder[];
@@ -672,6 +724,7 @@ export const {
   useGetOrderEditEligibilityQuery,
   useGetOrderCancelEligibilityQuery,
   useGetShopifyOrdersQuery,
+  useGetOrderHistoryQuery,
   useGetShopifyDraftOrdersQuery,
   useGetShopifyReturnReasonsQuery,
   useGetShopifyReturnReasonsCodeQuery,

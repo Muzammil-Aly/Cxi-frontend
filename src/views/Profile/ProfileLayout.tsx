@@ -27,11 +27,13 @@ import { clearAuthData } from "@/utils/auth";
 interface ProfileLayoutProps {
   children: React.ReactNode;
   activeMenu: string;
+  noHeaderGap?: boolean;
 }
 
 const ProfileLayout: React.FC<ProfileLayoutProps> = ({
   children,
   activeMenu,
+  noHeaderGap = false,
 }) => {
   const router = useRouter();
   const [openGenieOpen, setOpenGenieOpen] = useState(false);
@@ -168,7 +170,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 2,
+            mb: noHeaderGap ? 0 : 2,
             borderBottom: "1px solid #E0E0E0",
             bgcolor: "#fff",
             pl: openGenieOpen ? "64px" : { xs: 0, sm: "90px" },
