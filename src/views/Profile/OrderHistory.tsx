@@ -107,7 +107,8 @@ const STORE_BRAND_LABELS: Record<string, string> = {
   store5: "Nursery Works",
 };
 
-const getStoreLabel = (store: string) => STORE_BRAND_LABELS[store] || store;
+const getStoreLabel = (store: string, storeName?: string | null) =>
+  storeName || STORE_BRAND_LABELS[store] || store;
 
 // Mirrors SearchInput's exact visual recipe so every filter field —
 // text, dropdown, select, or date-range — reads as one consistent set.
@@ -1122,7 +1123,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ headerActions }) => {
                                 >
                                   <StorefrontOutlinedIcon sx={{ fontSize: 12.5 }} />
                                   <Typography sx={{ fontSize: 12.5 }} noWrap>
-                                    {getStoreLabel(row.store)}
+                                    {getStoreLabel(row.store, row.store_name)}
                                     {row.request_payload?.vendor ? ` · ${getVendorLabel(row.request_payload.vendor)}` : ""}
                                   </Typography>
                                 </Box>
@@ -1286,7 +1287,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ headerActions }) => {
                 <DetailRow
                   icon={<StorefrontOutlinedIcon sx={{ fontSize: 17 }} />}
                   label="Store"
-                  value={getStoreLabel(selectedRow.store)}
+                  value={getStoreLabel(selectedRow.store, selectedRow.store_name)}
                 />
                 {selectedRow.request_payload?.vendor && (
                   <DetailRow

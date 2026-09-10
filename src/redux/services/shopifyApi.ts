@@ -58,6 +58,7 @@ export interface OrderHistoryRow {
   id: string;
   action: string;
   store: string;
+  store_name: string | null;
   shopify_order_id: string | null;
   shopify_order_name: string | null;
   user_id: string;
