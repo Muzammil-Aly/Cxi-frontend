@@ -191,6 +191,12 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     string | undefined
   >(undefined);
   const [isYourReferenceTyping, setIsYourReferenceTyping] = useState(false);
+
+  const [enteredByInput, setEnteredByInput] = useState("");
+  const [enteredByFilter, setEnteredByFilter] = useState<string | undefined>(
+    undefined,
+  );
+  const [isEnteredByTyping, setIsEnteredByTyping] = useState(false);
   const { isActive, isOrderItemsOpen, activeTabName } = useSelector(
     (state: RootState) => state.tab,
   );
@@ -222,6 +228,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     { key: "psiNumber", label: "PSI Number", type: "input" },
     { key: "phone_no", label: "Phone No", type: "input" },
     { key: "your_reference", label: "Your Reference", type: "input" },
+    { key: "entered_by", label: "Entered By", type: "input" },
   ];
 
   const { data, isLoading, isFetching } = useGetCustomerOrdersQuery({
@@ -244,6 +251,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     psi_number: psiNumberStatusFilter || undefined,
     phone_no: phoneNumberStatusFilter || undefined,
     your_reference: yourReferenceFilter || undefined,
+    entered_by: enteredByFilter || undefined,
   });
 
   const {
@@ -317,6 +325,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
       ship_to_address_2: item.ship_to_address_2 || "N/A",
       ship_to_city: item.ship_to_city || "N/A",
       location_code: item.location_code || "N/A",
+      entered_by: item.entered_by || "N/A",
     }));
   }, [data]);
 
@@ -340,6 +349,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     customerNoFilter,
     phoneNumberStatusFilter,
     yourReferenceFilter,
+    enteredByFilter,
   ]);
 
   // Auto-select first order when search/filter results load
@@ -361,6 +371,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
       psiNumberStatusFilter ||
       phoneNumberStatusFilter ||
       yourReferenceFilter ||
+      enteredByFilter ||
       searchTerm;
 
     // When data updates and filters are active
@@ -384,6 +395,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     psiNumberStatusFilter,
     phoneNumberStatusFilter,
     yourReferenceFilter,
+    enteredByFilter,
     searchTerm,
   ]);
 
@@ -487,6 +499,15 @@ const Orders = ({ customerId }: { customerId?: string }) => {
         setYourReferenceFilter(value || undefined);
         setPage(1);
         setIsYourReferenceTyping(false);
+      }, 5000),
+    [],
+  );
+  const debouncedEnteredBy = useMemo(
+    () =>
+      debounce((value: string) => {
+        setEnteredByFilter(value || undefined);
+        setPage(1);
+        setIsEnteredByTyping(false);
       }, 5000),
     [],
   );
@@ -599,6 +620,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
               return "phone_no";
             case "your_reference":
               return "your_reference";
+            case "entered_by":
+              return "entered_by";
             default:
               return null;
           }
@@ -675,6 +698,12 @@ const Orders = ({ customerId }: { customerId?: string }) => {
           setYourReferenceFilter(undefined);
           setYourReferenceInput("");
           setIsYourReferenceTyping(false);
+          break;
+
+        case "entered_by":
+          setEnteredByFilter(undefined);
+          setEnteredByInput("");
+          setIsEnteredByTyping(false);
           break;
 
         default:
@@ -808,6 +837,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
               return "phone_no";
             case "your_reference":
               return "your_reference";
+            case "entered_by":
+              return "entered_by";
             default:
               return f.key;
           }
@@ -927,6 +958,11 @@ const Orders = ({ customerId }: { customerId?: string }) => {
           setYourReferenceFilter(undefined);
           setIsYourReferenceTyping(false);
           break;
+        case "entered_by":
+          setEnteredByInput("");
+          setEnteredByFilter(undefined);
+          setIsEnteredByTyping(false);
+          break;
         default:
           break;
       }
@@ -970,6 +1006,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
               return "phone_no";
             case "your_reference":
               return "your_reference";
+            case "entered_by":
+              return "entered_by";
             default:
               return f.key;
           }
@@ -1308,6 +1346,20 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                           setFilter={setYourReferenceFilter}
                           debouncedFunction={debouncedYourReference}
                           loading={isYourReferenceTyping}
+                          width={180}
+                        />
+                      )}
+                      {f.key === "entered_by" && (
+                        <SearchInput
+                          label="Entered By"
+                          value={enteredByInput}
+                          setValue={(val) => {
+                            setEnteredByInput(val);
+                            setIsEnteredByTyping(true);
+                          }}
+                          setFilter={setEnteredByFilter}
+                          debouncedFunction={debouncedEnteredBy}
+                          loading={isEnteredByTyping}
                           width={180}
                         />
                       )}

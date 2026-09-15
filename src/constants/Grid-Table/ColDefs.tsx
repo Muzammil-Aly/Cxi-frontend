@@ -162,6 +162,12 @@ export const orders = [
     headerName: "Location Code",
     cellRenderer: CopyCellRenderer,
   },
+
+  {
+    field: "entered_by",
+    headerName: "Entered By",
+    cellRenderer: CopyCellRenderer,
+  }
 ];
 
 export const orderItems = (

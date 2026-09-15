@@ -171,6 +171,9 @@ const useOrdersColumn = (columns: Column[]) => {
 
         case "ship_to_city":
           return { ...col, headerName: "Ship To City", minWidth: 140 };
+        
+        case "entered_by":
+          return { ...col, headerName: "Entered By", minWidth: 140 };
         default:
           return col;
       }
