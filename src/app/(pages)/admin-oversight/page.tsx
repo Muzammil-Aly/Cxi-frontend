@@ -1,15 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ToggleButtonGroup, ToggleButton } from "@mui/material";
 import ProfileLayout from "@/views/Profile/ProfileLayout";
 import AdminDashboard from "@/views/Profile/AdminDashboard";
 import OrderHistory from "@/views/Profile/OrderHistory";
 
+const ADMIN_USER_IDS = ["kav1", "mdb1"];
+const ORDER_HISTORY_ALLOWED_USER_IDS = ["mdb13", "mdb14", "mdb15", "mdb28"];
+
 const AdminOversightPage = () => {
   const [tab, setTab] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const tabSwitcher = (
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    const admin = ADMIN_USER_IDS.includes(userId ?? "");
+    setIsAdmin(admin);
+    if (!admin && ORDER_HISTORY_ALLOWED_USER_IDS.includes(userId ?? "")) {
+      setTab(1);
+    }
+  }, []);
+
+  const tabSwitcher = isAdmin ? (
     <ToggleButtonGroup
       value={tab}
       exclusive
@@ -43,12 +56,14 @@ const AdminOversightPage = () => {
       <ToggleButton value={0}>Sessions</ToggleButton>
       <ToggleButton value={1}>Order History</ToggleButton>
     </ToggleButtonGroup>
-  );
+  ) : null;
 
   return (
     <ProfileLayout activeMenu="Admin Oversight" noHeaderGap>
-      {tab === 0 && <AdminDashboard headerActions={tabSwitcher} />}
-      {tab === 1 && <OrderHistory headerActions={tabSwitcher} />}
+      {isAdmin && tab === 0 && <AdminDashboard headerActions={tabSwitcher} />}
+      {(!isAdmin || tab === 1) && (
+        <OrderHistory headerActions={tabSwitcher} />
+      )}
     </ProfileLayout>
   );
 };

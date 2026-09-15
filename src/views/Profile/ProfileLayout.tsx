@@ -8,6 +8,7 @@ import EventIcon from "@mui/icons-material/Event";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import InsightsIcon from "@mui/icons-material/Insights";
+import HistoryIcon from "@mui/icons-material/History";
 import Sidebar from "./Sidebar";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 
@@ -23,6 +24,8 @@ import {
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import { clearAuthData } from "@/utils/auth";
+
+const ORDER_HISTORY_ALLOWED_USER_IDS = ["mdb13", "mdb14", "mdb15", "mdb28"];
 
 interface ProfileLayoutProps {
   children: React.ReactNode;
@@ -112,16 +115,29 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
     if (!userId) return; // wait until userId is loaded
 
     const admin = userId === "kav1" || userId === "mdb1";
+    const orderHistoryOnly = ORDER_HISTORY_ALLOWED_USER_IDS.includes(userId);
 
     setFilteredMenuItems(
-      menuItems.filter((item) => {
-        if (item.key === "Admin Oversight") {
-          return admin;
-        }
-        return true;
-      }),
+      menuItems
+        .filter((item) => {
+          if (item.key === "Admin Oversight") {
+            return admin || orderHistoryOnly;
+          }
+          return true;
+        })
+        .map((item) =>
+          item.key === "Admin Oversight" && orderHistoryOnly && !admin
+            ? { ...item, label: "Order History", icon: <HistoryIcon /> }
+            : item,
+        ),
     );
   }, [userId]);
+
+  const displayMenu =
+    activeMenu === "Admin Oversight"
+      ? (filteredMenuItems.find((item) => item.key === "Admin Oversight")
+          ?.label ?? activeMenu)
+      : activeMenu;
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f8f9fa" }}>
@@ -193,7 +209,7 @@ const ProfileLayout: React.FC<ProfileLayoutProps> = ({
             <Typography
               sx={{ fontSize: 16, fontWeight: 600, color: "#4658AC" }}
             >
-              {activeMenu}
+              {displayMenu}
             </Typography>
           </Breadcrumbs>
 
