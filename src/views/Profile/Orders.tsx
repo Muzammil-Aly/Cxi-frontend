@@ -197,6 +197,12 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     undefined,
   );
   const [isEnteredByTyping, setIsEnteredByTyping] = useState(false);
+
+  const [releaseErrorInput, setReleaseErrorInput] = useState("");
+  const [releaseErrorFilter, setReleaseErrorFilter] = useState<
+    string | undefined
+  >(undefined);
+  const [isReleaseErrorTyping, setIsReleaseErrorTyping] = useState(false);
   const { isActive, isOrderItemsOpen, activeTabName } = useSelector(
     (state: RootState) => state.tab,
   );
@@ -229,6 +235,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     { key: "phone_no", label: "Phone No", type: "input" },
     { key: "your_reference", label: "Your Reference", type: "input" },
     { key: "entered_by", label: "Entered By", type: "input" },
+    { key: "release_error", label: "Release Error", type: "input" },
   ];
 
   const { data, isLoading, isFetching } = useGetCustomerOrdersQuery({
@@ -252,6 +259,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     phone_no: phoneNumberStatusFilter || undefined,
     your_reference: yourReferenceFilter || undefined,
     entered_by: enteredByFilter || undefined,
+    release_error: releaseErrorFilter || undefined,
   });
 
   const {
@@ -350,6 +358,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     phoneNumberStatusFilter,
     yourReferenceFilter,
     enteredByFilter,
+    releaseErrorFilter,
   ]);
 
   // Auto-select first order when search/filter results load
@@ -372,6 +381,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
       phoneNumberStatusFilter ||
       yourReferenceFilter ||
       enteredByFilter ||
+      releaseErrorFilter ||
       searchTerm;
 
     // When data updates and filters are active
@@ -396,6 +406,7 @@ const Orders = ({ customerId }: { customerId?: string }) => {
     phoneNumberStatusFilter,
     yourReferenceFilter,
     enteredByFilter,
+    releaseErrorFilter,
     searchTerm,
   ]);
 
@@ -511,6 +522,15 @@ const Orders = ({ customerId }: { customerId?: string }) => {
       }, 5000),
     [],
   );
+  const debouncedReleaseError = useMemo(
+    () =>
+      debounce((value: string) => {
+        setReleaseErrorFilter(value || undefined);
+        setPage(1);
+        setIsReleaseErrorTyping(false);
+      }, 5000),
+    [],
+  );
   const debouncedOrderStatus = useMemo(
     () =>
       debounce((value: string) => {
@@ -622,6 +642,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
               return "your_reference";
             case "entered_by":
               return "entered_by";
+            case "release_error":
+              return "release_error";
             default:
               return null;
           }
@@ -704,6 +726,12 @@ const Orders = ({ customerId }: { customerId?: string }) => {
           setEnteredByFilter(undefined);
           setEnteredByInput("");
           setIsEnteredByTyping(false);
+          break;
+
+        case "release_error":
+          setReleaseErrorFilter(undefined);
+          setReleaseErrorInput("");
+          setIsReleaseErrorTyping(false);
           break;
 
         default:
@@ -962,6 +990,11 @@ const Orders = ({ customerId }: { customerId?: string }) => {
           setEnteredByInput("");
           setEnteredByFilter(undefined);
           setIsEnteredByTyping(false);
+          break;
+        case "release_error":
+          setReleaseErrorInput("");
+          setReleaseErrorFilter(undefined);
+          setIsReleaseErrorTyping(false);
           break;
         default:
           break;
@@ -1360,6 +1393,20 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                           setFilter={setEnteredByFilter}
                           debouncedFunction={debouncedEnteredBy}
                           loading={isEnteredByTyping}
+                          width={180}
+                        />
+                      )}
+                      {f.key === "release_error" && (
+                        <SearchInput
+                          label="Release Error"
+                          value={releaseErrorInput}
+                          setValue={(val) => {
+                            setReleaseErrorInput(val);
+                            setIsReleaseErrorTyping(true);
+                          }}
+                          setFilter={setReleaseErrorFilter}
+                          debouncedFunction={debouncedReleaseError}
+                          loading={isReleaseErrorTyping}
                           width={180}
                         />
                       )}

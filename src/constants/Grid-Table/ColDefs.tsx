@@ -876,6 +876,11 @@ export const touchups_columns = [
     headerName: "Potential Qty Available",
     cellRenderer: CopyCellRenderer,
   },
+  {
+    field: "unit_price",
+    headerName: "Unit Price",
+    cellRenderer: CopyCellRenderer,
+  },
 ];
 
 export const touchups_pens = [

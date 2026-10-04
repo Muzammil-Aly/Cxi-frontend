@@ -88,6 +88,13 @@ const useTouchupsColumn = (columns: Column[]) => {
             flex: 1,
             minWidth: 220,
           };
+        case "unit_price":
+          return {
+            ...col,
+            headerName: "Unit Price",
+            flex: 1,
+            minWidth: 140,
+          };
         default:
           return col;
       }

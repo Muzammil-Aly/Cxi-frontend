@@ -28,6 +28,7 @@ export const orderApi = createApi({
         phone_no?: string;
         your_reference?: string;
         entered_by?: string;
+        release_error?: string;
       }
     >({
       query: ({
@@ -51,6 +52,7 @@ export const orderApi = createApi({
         phone_no,
         your_reference,
         entered_by,
+        release_error,
       }) => {
         const params = new URLSearchParams();
         params.set("page", page.toString());
@@ -75,6 +77,7 @@ export const orderApi = createApi({
         if (phone_no) params.set("phone_no", phone_no);
         if (your_reference) params.set("your_reference", your_reference);
         if (entered_by) params.set("entered_by", entered_by);
+        if (release_error) params.set("release_error", release_error);
 
         return `/customer_orders?${params.toString()}`;
       },

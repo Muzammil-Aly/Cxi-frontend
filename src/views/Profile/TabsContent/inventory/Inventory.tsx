@@ -51,8 +51,9 @@ const Inventory = () => {
   //   string | undefined
   // >(undefined);
 
-  const [locationCodeInput, setLocationCodeInput] = useState<string[]>([]);
-  const [locationCodeFilter, setLocationCodeFilter] = useState<string[]>([]);
+  // Default to location "10"; user can remove or change it
+  const [locationCodeInput, setLocationCodeInput] = useState<string[]>(["10"]);
+  const [locationCodeFilter, setLocationCodeFilter] = useState<string[]>(["10"]);
   const [locationCodeSearch, setLocationCodeSearch] = useState<string>("");
   const [itemNoInput, setItemNoInput] = useState("");
   const [ItemNoFilter, setItemNoFilter] = useState<string | undefined>(

@@ -185,6 +185,7 @@ const Touchups = ({
           color_name: item.color_name,
           parts_version: item.parts_version,
           potential_qty_available: item.potential_qty_available,
+          unit_price: item.unit_price,
         }))
       : [];
   }, [data]);
