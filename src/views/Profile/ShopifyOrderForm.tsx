@@ -173,7 +173,7 @@ const defaultAddress: Address = {
   phone: "",
 };
 
-const STORE_OPTIONS: {
+export const STORE_OPTIONS: {
   value: ShopifyStore;
   label: string;
   tag: string;
@@ -302,7 +302,7 @@ const CANCELLATION_NOTE_OPTIONS: Record<string, string[]> = {
   ],
 };
 
-interface StoreOption {
+export interface StoreOption {
   value: ShopifyStore;
   label: string;
   tag: string;
@@ -317,7 +317,7 @@ interface StoreDropdownProps {
   options: StoreOption[];
 }
 
-const StoreDropdown: React.FC<StoreDropdownProps> = ({
+export const StoreDropdown: React.FC<StoreDropdownProps> = ({
   selectedLabel,
   onChange,
   options,
@@ -812,7 +812,7 @@ interface SearchableDropdownProps {
   placeholder?: string;
 }
 
-const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
+export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   value,
   onChange,
   options,
@@ -1000,7 +1000,7 @@ interface LineItemSearchFieldsProps {
   }) => void;
 }
 
-const LineItemSearchFields: React.FC<LineItemSearchFieldsProps> = ({
+export const LineItemSearchFields: React.FC<LineItemSearchFieldsProps> = ({
   onPopulate,
 }) => {
   const [itemSearchTerm, setItemSearchTerm] = useState("");
@@ -1703,7 +1703,7 @@ const LineItemSearchFields: React.FC<LineItemSearchFieldsProps> = ({
 
 // ─── PartsSubSection ─────────────────────────────────────────────────────────
 
-type PartRow = {
+export type PartRow = {
   parts_item_no: string;
   parts_qty: number;
   parts_unit_price: number | null;
@@ -1750,7 +1750,7 @@ const EMPTY_PART = (): PartRow => ({
   parts_unit_price: null,
 });
 
-const PartsSubSection: React.FC<PartsSubSectionProps> = ({
+export const PartsSubSection: React.FC<PartsSubSectionProps> = ({
   item_no,
   lot_no,
   parts,
@@ -3520,7 +3520,7 @@ const DraftCustomItemRow: React.FC<DraftCustomItemRowProps> = ({
 
 // ─── ResultBox ────────────────────────────────────────────────────────────────
 
-const ResultBox: React.FC<{
+export const ResultBox: React.FC<{
   data?: any;
   error?: any;
   successColor?: string;

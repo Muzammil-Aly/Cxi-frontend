@@ -66,6 +66,7 @@ const ACTION_META: Record<
   draft_order_completed: { label: "Draft Completed", icon: CheckCircleIcon, color: "#059669", bg: "#ECFDF5" },
   draft_order_invoice_sent: { label: "Invoice Sent", icon: MailOutlineIcon, color: "#D97706", bg: "#FFFBEB" },
   order_cancelled: { label: "Order Cancelled", icon: CancelIcon, color: "#DC2626", bg: "#FEF2F2" },
+  order_refunded: { label: "Order Refunded", icon: ReceiptLongIcon, color: "#7C3AED", bg: "#F5F3FF" },
 };
 
 const getActionMeta = (action: string) =>
