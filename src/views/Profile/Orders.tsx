@@ -1483,7 +1483,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                   userId === "mdb5" ||
                   userId === "mdb9" ||
                   userId === "mdb8" ||
-                  userId === "mdb43") && (
+                  userId === "mdb43" ||
+                  userId === "mdb44") && (
                   <Button
                     variant="contained"
                     startIcon={<Add />}
@@ -1800,7 +1801,8 @@ const Orders = ({ customerId }: { customerId?: string }) => {
                 userId === "mdb5" ||
                 userId === "mdb9" ||
                 userId === "mdb8" ||
-                userId === "mdb43") && (
+                userId === "mdb43" ||
+                userId === "mdb44") && (
                 <>
                   <Dialog
                     open={openCreateOrder}
