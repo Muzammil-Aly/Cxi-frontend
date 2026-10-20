@@ -83,11 +83,13 @@ const refundFieldInputStyle: React.CSSProperties = {
 function RefundAction({
   requestId,
   orderNo,
+  retailerNo,
   sku,
   amount,
 }: {
   requestId: string | null;
   orderNo: string | null;
+  retailerNo: string | null;
   sku: string | null;
   amount: number | null;
 }) {
@@ -211,6 +213,14 @@ function RefundAction({
           </Typography>
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mb: 1.5 }}>
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: "#6b7280", display: "block", mb: 0.5 }}>
+                Retailer
+              </Typography>
+              <div style={{ ...refundFieldInputStyle, background: "#f3f4f6", color: retailerNo ? "#374151" : "#9ca3af", cursor: "not-allowed" }}>
+                {retailerNo || "—"}
+              </div>
+            </Box>
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 600, color: "#6b7280", display: "block", mb: 0.5 }}>
                 Order No
@@ -770,6 +780,7 @@ function DetailPanel({ requestId, onClose }: { requestId: string; onClose: () =>
                         <RefundAction
                           requestId={header?.id ?? null}
                           orderNo={header?.order_no ?? null}
+                          retailerNo={header?.retailer_no ?? null}
                           sku={item.sku}
                           amount={item.item_total_refund_amount}
                         />

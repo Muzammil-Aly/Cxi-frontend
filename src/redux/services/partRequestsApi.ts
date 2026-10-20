@@ -13,6 +13,7 @@ export interface PartRequestHeader {
   status: string | null;
   review_type: string | null;
   retailer_name: string | null;
+  retailer_no?: string | null;
   zendesk_ticket_id: string | null;
   store: string | null;
   reason_code: string | null;
