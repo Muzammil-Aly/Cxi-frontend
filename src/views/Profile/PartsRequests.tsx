@@ -43,8 +43,7 @@ import {
 } from "@/redux/services/shopifyApi";
 import Loader from "@/components/Common/Loader";
 import CustomSelect from "@/components/Common/CustomTabs/CustomSelect";
-import PartRequestDraftOrderForm, { matchStoreOption } from "./PartRequestDraftOrderForm";
-import { StoreDropdown, STORE_OPTIONS, type StoreOption } from "./ShopifyOrderForm";
+import PartRequestDraftOrderForm from "./PartRequestDraftOrderForm";
 
 const TABS: { key: PartRequestTab; label: string }[] = [
   { key: "needs_review", label: "Needs Review" },
@@ -84,13 +83,11 @@ const refundFieldInputStyle: React.CSSProperties = {
 function RefundAction({
   requestId,
   orderNo,
-  store,
   sku,
   amount,
 }: {
   requestId: string | null;
   orderNo: string | null;
-  store: ReturnType<typeof matchStoreOption>;
   sku: string | null;
   amount: number | null;
 }) {
@@ -100,7 +97,8 @@ function RefundAction({
   // Editable copies — default to the part request's data, but overridable so
   // this can be pointed at a test-store order/SKU/amount when there's no
   // matching real data to test against (same idea as Create Order's fields).
-  const [editStore, setEditStore] = useState<StoreOption | null>(store);
+  // The Shopify store isn't chosen here — the backend picks it from the part
+  // request's retailer_no.
   const [editOrderNo, setEditOrderNo] = useState(orderNo ?? "");
   const [editSku, setEditSku] = useState(sku ?? "");
   const [editAmount, setEditAmount] = useState(amount != null ? String(amount) : "");
@@ -110,8 +108,8 @@ function RefundAction({
   const [createRefund, { isLoading: isRefunding, error: createError }] = useCreatePartRequestRefundMutation();
   const [markSubmitted] = useMarkPartRequestSubmittedMutation();
 
-  const disabledReason = !store
-    ? "This request's store doesn't match a known store."
+  const disabledReason = !requestId
+    ? "No request id."
     : !orderNo
       ? "No order number on this request."
       : !sku
@@ -125,21 +123,20 @@ function RefundAction({
   }
 
   const openDialog = () => {
-    setEditStore(store);
     setEditOrderNo(orderNo ?? "");
     setEditSku(sku ?? "");
     setEditAmount(amount != null ? String(amount) : "");
     setOpen(true);
     // Auto-run the check on open — no need to click Check the first time,
     // only if the reviewer then edits a field and wants to re-verify.
-    if (store && orderNo?.trim() && sku?.trim()) {
-      triggerPreview({ store: store.value, order_no: orderNo.trim(), sku: sku.trim() });
+    if (requestId && orderNo?.trim() && sku?.trim()) {
+      triggerPreview({ request_id: requestId, order_no: orderNo.trim(), sku: sku.trim() });
     }
   };
 
   const runCheck = () => {
-    if (!editStore || !editOrderNo.trim() || !editSku.trim()) return;
-    triggerPreview({ store: editStore.value, order_no: editOrderNo.trim(), sku: editSku.trim() });
+    if (!requestId || !editOrderNo.trim() || !editSku.trim()) return;
+    triggerPreview({ request_id: requestId, order_no: editOrderNo.trim(), sku: editSku.trim() });
   };
 
   const canConfirm = !!preview?.orderFound && !!preview?.lineFound && !!preview?.transactionFound;
@@ -147,13 +144,10 @@ function RefundAction({
   const handleConfirm = async () => {
     try {
       await createRefund({
-        store: editStore!.value,
+        request_id: requestId!,
         order_no: editOrderNo.trim(),
         sku: editSku.trim(),
         amount: editAmount.trim(),
-        // Same short code the draft-order flow sends (e.g. "CP03") so the
-        // refund row in Order History shows the product line too.
-        vendor: (editStore!.label ?? "").split("-")[0].trim().replace(/\s+/g, ""),
       }).unwrap();
       toast.success("Refund created in Shopify.");
       setDone(true);
@@ -213,20 +207,10 @@ function RefundAction({
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700 }}>Create refund</DialogTitle>
         <DialogContent>
           <Typography variant="caption" sx={{ color: "#666", display: "block", mb: 1.5 }}>
-            Prefilled from the part request — edit any field to test against a different store/order, then Check.
+            Prefilled from the part request. The Shopify store is chosen automatically from the request's retailer.
           </Typography>
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mb: 1.5 }}>
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: "#6b7280", display: "block", mb: 0.5 }}>
-                Store
-              </Typography>
-              <StoreDropdown
-                selectedLabel={editStore?.label ?? ""}
-                onChange={(opt) => setEditStore(opt)}
-                options={STORE_OPTIONS}
-              />
-            </Box>
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 600, color: "#6b7280", display: "block", mb: 0.5 }}>
                 Order No
@@ -266,7 +250,7 @@ function RefundAction({
             component="button"
             type="button"
             onClick={runCheck}
-            disabled={!editStore || !editOrderNo.trim() || !editSku.trim() || isPreviewing}
+            disabled={!editOrderNo.trim() || !editSku.trim() || isPreviewing}
             sx={{
               px: 1.5,
               py: 0.6,
@@ -276,8 +260,8 @@ function RefundAction({
               color: "#4f46e5",
               fontWeight: 700,
               fontSize: 12,
-              cursor: !editStore || !editOrderNo.trim() || !editSku.trim() ? "not-allowed" : "pointer",
-              opacity: !editStore || !editOrderNo.trim() || !editSku.trim() ? 0.5 : 1,
+              cursor: !editOrderNo.trim() || !editSku.trim() ? "not-allowed" : "pointer",
+              opacity: !editOrderNo.trim() || !editSku.trim() ? 0.5 : 1,
               width: "100%",
               mb: 1.5,
             }}
@@ -298,6 +282,12 @@ function RefundAction({
             </Alert>
           ) : preview ? (
             <>
+              {preview.storeName && (
+                <Typography variant="caption" sx={{ display: "block", color: "#6b7280", mb: 0.75 }}>
+                  Searching Shopify store: <b>{preview.storeName}</b>
+                  {preview.storeDomain ? ` (${preview.storeDomain})` : ""}
+                </Typography>
+              )}
               <RefundCheckRow
                 ok={preview.orderFound}
                 label={preview.orderFound ? `Order found (${preview.order?.name})` : "Order not found"}
@@ -511,6 +501,10 @@ function DetailPanel({ requestId, onClose }: { requestId: string; onClose: () =>
   // Refund requests don't need a draft order — only show the button when
   // at least one item on the request is a 'parts' item.
   const hasPartsItems = !!data?.items.some((item) => item.request_type !== "refund");
+  // Same rule the "Submitted to Shopify" tab uses (status submitted, or already
+  // has a draft order) — once submitted, neither Create Draft Order nor Create
+  // Refund is offered, so it can't be actioned twice from any tab.
+  const isSubmitted = header?.status === "submitted" || !!header?.shopify_draft_order_id;
 
   return (
     <>
@@ -548,7 +542,7 @@ function DetailPanel({ requestId, onClose }: { requestId: string; onClose: () =>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 3, py: 2, backgroundColor: "#fff", borderBottom: "1px solid #e5e7eb" }}>
           <Typography variant="h6" fontWeight={700}>Part Request Detail</Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {data && hasPartsItems && (
+            {data && hasPartsItems && !isSubmitted && (
               <Box
                 component="button"
                 onClick={() => setDraftOrderOpen(true)}
@@ -772,13 +766,14 @@ function DetailPanel({ requestId, onClose }: { requestId: string; onClose: () =>
                           {item.item_total_refund_amount != null ? `$${Number(item.item_total_refund_amount).toFixed(2)}` : "—"}
                         </Typography>
                       </Box>
-                      <RefundAction
-                        requestId={header?.id ?? null}
-                        orderNo={header?.order_no ?? null}
-                        store={matchStoreOption(header?.store)}
-                        sku={item.sku}
-                        amount={item.item_total_refund_amount}
-                      />
+                      {!isSubmitted && (
+                        <RefundAction
+                          requestId={header?.id ?? null}
+                          orderNo={header?.order_no ?? null}
+                          sku={item.sku}
+                          amount={item.item_total_refund_amount}
+                        />
+                      )}
                     </Box>
                   )}
 

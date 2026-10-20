@@ -221,16 +221,19 @@ export const shopifyApi = createApi({
     // transaction exist? Shown in a preview modal before the reviewer confirms.
     previewPartRequestRefund: builder.query<
       {
+        storeName?: string;
+        storeDomain?: string | null;
         orderFound: boolean;
         order: { id: string; name: string } | null;
         lineFound: boolean;
         line: { id: string; title: string | null; currentQuantity: number | null } | null;
         transactionFound: boolean;
       },
-      { store?: ShopifyStore; order_no: string; sku: string }
+      { request_id: string; order_no: string; sku: string }
     >({
-      query: ({ store = "store1", order_no, sku }) => ({
-        url: `/shopify/part-request-refund/preview?store=${store}&order_no=${encodeURIComponent(order_no)}&sku=${encodeURIComponent(sku)}`,
+      // The backend picks the Shopify store from the part request's retailer_no.
+      query: ({ request_id, order_no, sku }) => ({
+        url: `/shopify/part-request-refund/preview?request_id=${encodeURIComponent(request_id)}&order_no=${encodeURIComponent(order_no)}&sku=${encodeURIComponent(sku)}`,
         method: "GET",
       }),
       transformResponse: (response: { data: any }) => response.data,
@@ -241,19 +244,18 @@ export const shopifyApi = createApi({
     createPartRequestRefund: builder.mutation<
       any,
       {
-        store?: ShopifyStore;
+        request_id: string;
         order_no: string;
         sku: string;
         amount: string;
         note?: string;
         notify?: boolean;
-        vendor?: string;
       }
     >({
-      query: ({ store = "store1", order_no, sku, amount, note, notify = false, vendor }) => ({
-        url: `/shopify/part-request-refund?store=${store}`,
+      query: ({ request_id, order_no, sku, amount, note, notify = false }) => ({
+        url: `/shopify/part-request-refund`,
         method: "POST",
-        body: { order_no, sku, amount, note, notify, vendor },
+        body: { request_id, order_no, sku, amount, note, notify },
       }),
     }),
 
