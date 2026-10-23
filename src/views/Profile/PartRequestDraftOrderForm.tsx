@@ -55,6 +55,12 @@ const fieldWrap: React.CSSProperties = {
   flexDirection: "column",
 };
 
+// Only items with request_type 'parts' go to a Shopify draft order ('refund'
+// items take the refund flow; any other value is ignored). Case/space-insensitive.
+export function isPartsItem(item: { request_type?: string | null }) {
+  return (item.request_type ?? "").trim().toLowerCase() === "parts";
+}
+
 // Match the request's store to a Create Order store option by full label or by
 // its code prefix (e.g. "CP02"). Read-only: nothing here is written anywhere.
 export function matchStoreOption(raw: unknown) {
@@ -121,7 +127,7 @@ function splitName(fullName: string | null | undefined): { firstName: string; la
 // normally handled as a whole-unit replacement — show it as one simple
 // line with no Parts Line Items breakdown, instead of listing each part.
 function buildLineItems(request: PartRequestDetail, autoWholeunitPartNumbers: Set<string>): DraftLineItem[] {
-  return request.items.map((item) => {
+  return request.items.filter(isPartsItem).map((item) => {
     const wholeUnitPart = item.parts.find(
       (part) => part.part_number && autoWholeunitPartNumbers.has(part.part_number),
     );
@@ -220,7 +226,7 @@ export default function PartRequestDraftOrderForm({
     // parts breakdown never flashes and then collapses — it just renders
     // correctly the first time.
     setLineItems([]);
-    const allPartNumbers = request.items.flatMap((item) =>
+    const allPartNumbers = request.items.filter(isPartsItem).flatMap((item) =>
       item.parts.map((part) => part.part_number).filter((n): n is string => !!n),
     );
     if (allPartNumbers.length === 0) {

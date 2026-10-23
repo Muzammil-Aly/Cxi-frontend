@@ -43,7 +43,7 @@ import {
 } from "@/redux/services/shopifyApi";
 import Loader from "@/components/Common/Loader";
 import CustomSelect from "@/components/Common/CustomTabs/CustomSelect";
-import PartRequestDraftOrderForm from "./PartRequestDraftOrderForm";
+import PartRequestDraftOrderForm, { isPartsItem } from "./PartRequestDraftOrderForm";
 
 const TABS: { key: PartRequestTab; label: string }[] = [
   { key: "needs_review", label: "Needs Review" },
@@ -508,9 +508,9 @@ function DetailPanel({ requestId, onClose }: { requestId: string; onClose: () =>
   const { data, isFetching, isError } = useGetPartRequestDetailQuery(requestId);
   const header = data?.header;
   const [draftOrderOpen, setDraftOrderOpen] = useState(false);
-  // Refund requests don't need a draft order — only show the button when
-  // at least one item on the request is a 'parts' item.
-  const hasPartsItems = !!data?.items.some((item) => item.request_type !== "refund");
+  // Only request_type 'parts' items become a draft order — show the button
+  // only when at least one item on the request is exactly 'parts'.
+  const hasPartsItems = !!data?.items.some(isPartsItem);
   // Same rule the "Submitted to Shopify" tab uses (status submitted, or already
   // has a draft order) — once submitted, neither Create Draft Order nor Create
   // Refund is offered, so it can't be actioned twice from any tab.
